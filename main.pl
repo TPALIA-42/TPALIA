@@ -1,5 +1,5 @@
 
-start:- init,board(C),displayGame(C,1).
+start:- init,board(B),displayGame(B,1).
 displayGame(L,Player) :- writeln('*----------------*'),!,affiche(L,Player).
 affiche([X|L],Player) :- println(X),nl,affiche(L,Player).
 affiche([],Player) :- writeln('*----------------*'),!.
@@ -33,7 +33,7 @@ slash(Board,(IndexL,IndexC),Player,R) :- slashDown(Board,(IndexL,IndexC),Player,
 antiSlash(Board,(IndexL,IndexC),Player,R) :- antiSlashUp(Board,(IndexL,IndexC),Player,0,R).
 antiSlash(Board,(IndexL,IndexC),Player,R) :- antiSlashDown(Board,(IndexL,IndexC),Player,0,R).
 
-[defDirection].
+:- [defDirection].
 											
 
 init :- assert(maxL(8)),
