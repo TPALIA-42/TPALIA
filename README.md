@@ -8,7 +8,7 @@ pour lancer:     start.
   
 pour trouver une place qu'on peut mettre la piece:  board(B),move(B,1,R).
 
-  il y affichera les places qui sont possible de mettre le piece.(";"pour la prochaine)
+  il y affichera les places qui sont possible(cherche dans tous les direction : hori,diag,verti) de mettre le piece.(";"pour la prochaine)
 
 Du coup, il nous reste encore la AI, qui est plus important. Bon courage!
 
