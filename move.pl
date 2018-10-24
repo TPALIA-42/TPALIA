@@ -1,8 +1,3 @@
-countMoves(Board,Player,Number) :- setof(M,move(Board,Player,M),Moves),!,count(Moves,0,Number).
-countMoves(Board,Player,Number) :- count([],0,Number).
-count([X|L],N,Number) :- NewN is N+1, count(L,NewN,Number).
-count([],N,N).
-
 direction(-1,0).
 direction(1,0).
 direction(0,-1).
@@ -14,12 +9,12 @@ direction(1,-1).
 
 move(Board,Player,Move) :- diskAt(Board,IndexL,IndexC,Disk),nonvar(Disk),Disk=:=Player,direction(DL,DC),move(Board,(IndexL,IndexC),Player,(DL,DC),0,Move).
 
-move(Board,(IndexL,IndexC),Player,(DirectionL,DirectionC),Counter,(MoveL,MoveC)) :- Counter > 0,
-                                                                                    MoveL is (IndexL+DirectionL),
-                                                                                    MoveC is (IndexC+DirectionC),
-                                                                                    insideBoard(MoveL,MoveC),
-                                                                                    diskAt(Board,MoveL,MoveC,Disk),
-                                                                                    var(Disk),!.
+move(Board,(IndexL,IndexC),_,(DirectionL,DirectionC),Counter,(MoveL,MoveC)) :- Counter > 0,
+                                                                               MoveL is (IndexL+DirectionL),
+                                                                               MoveC is (IndexC+DirectionC),
+                                                                               insideBoard(MoveL,MoveC),
+                                                                               diskAt(Board,MoveL,MoveC,Disk),
+                                                                               var(Disk),!.
 move(Board,(IndexL,IndexC),Player,(DirectionL,DirectionC),Counter,Move) :- NewIndexL is (IndexL+DirectionL),
                                                                            NewIndexC is (IndexC+DirectionC),
                                                                            insideBoard(NewIndexL,NewIndexC),
