@@ -1,4 +1,5 @@
-countMoves(Board,Player,Number) :- setof(M,move(Board,Player,M),Moves),count(Moves,0,Number).
+countMoves(Board,Player,Number) :- setof(M,move(Board,Player,M),Moves),!,count(Moves,0,Number).
+countMoves(Board,Player,Number) :- count([],0,Number).
 count([X|L],N,Number) :- NewN is N+1, count(L,NewN,Number).
 count([],N,N).
 
