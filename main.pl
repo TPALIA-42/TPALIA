@@ -84,6 +84,8 @@ init :- assert(maxL(8)),
 % generer un board à dimensions variables
 init2 :-
 		askForGameHeight(GameHeight),
+		assert(maxL(GameHeight)),
+		assert(maxC(GameHeight)),
 		makeMatrix(GameHeight,Mat),
 		Index1 is GameHeight / 2,
 		Index2 is 1 + GameHeight / 2,
@@ -94,7 +96,6 @@ init2 :-
 		[move],
         assert(dynamic board/1),
         assert(board(Mat)).
-		
 
 placeDisk(IndexL,IndexC,Board,Disk) :- nth1(IndexL,Board,BoardLine),nth1(IndexC,BoardLine,Disk).
 
