@@ -78,3 +78,31 @@ init :- assert(maxL(8)),
         [move],
         assert(board([L1,L2,L3,L4,L5,L6,L7,L8])),
         board(Board).
+
+% generer un board à dimensions variables
+init2 :-
+		askForGameHeight(GameHeight),
+		make_matrix(GameHeight,Mat),
+		Index1 is GameHeight / 2,
+		Index2 is 1 + GameHeight / 2,
+		placeDisk(Index1,Index1,Mat,0),
+		placeDisk(Index1,Index2,Mat,1),
+		placeDisk(Index2,Index1,Mat,1),
+		placeDisk(Index2,Index2,Mat,0),
+		
+        assert(dynamic board/1),
+        assert(board(Mat)).
+
+askForGameHeight(GameHeight):- write('Saisir la taille du jeu : '), read(Input),nl,
+							(Input mod 2 =:= 0 -> GameHeight is Input,!;var(GameHeight),
+							write("Taille invalide, veuillez saisir un nombre pair."),nl,askForGameHeight(GameHeight)).
+
+make_matrix(N, Mat) :- make_matrix(N,N,Mat).
+make_matrix(N, M, Mat) :- length(Mat,N),
+					 make_line(Mat,M).
+					 
+make_line([],M):- !.
+make_line([H|T],M):- length(H,M),
+					 make_line(T,M).
+							
+		
