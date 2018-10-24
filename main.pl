@@ -1,40 +1,58 @@
+play(Board,Player,Result) :- gameOver(Board,Player,Result),!,announce(Result).
 
-start:- init,board(B),displayGame(B,1).
+play(Board,Player,Result) :- chooseMove(Board,Player,Move),
+                             applyMove(Move,Player,Board,Board1),
+                             displayGame(Board1,Player),
+                             nextPlayer(Player,Player1),
+                             !,play(Board1,Player1,Result).
+							 
+chooseMove(Board,Player,Move) :- set_of(M,move(Board,Player,M),Moves),evaluate_and_choose(Moves,Board,(nil,-1000),Move).
+
+evaluate_and_choose([X|_],_,_,X).
+
+applyMove((X,Y),0,Board,Boardl) :- nth1(X,Board,L),
+									nth1(Y,L,0),
+									giveValue(L,LModif),
+									nth1(X,Board,LModif),
+									giveValue(Board,Boardl).
+applyMove((X,Y),1,Board,Boardl) :- nth1(X,Board,L),
+									nth1(Y,L,1),
+									giveValue(L,LModif),
+									nth1(X,Board,LModif),
+									giveValue(Board,Boardl).
+
+
 displayGame(L,Player) :- writeln('*----------------*'),!,affiche(L,Player).
 affiche([X|L],Player) :- println(X),nl,affiche(L,Player).
-affiche([],Player) :- writeln('*----------------*'),!.
+affiche([],_) :- writeln('*----------------*'),!.
 
 println([]).
 println([X|L]) :- var(X),write('? '),!,println(L).
 println([X|L]) :- write(X),write(' '),!,println(L).
 
-move(Board,0,Result) :- zero(Coord),vertical(Board,Coord,0,Result).
-move(Board,0,Result) :- zero(Coord),horizontal(Board,Coord,0,Result).
-move(Board,0,Result) :- zero(Coord),slash(Board,Coord,0,Result).
-move(Board,0,Result) :- zero(Coord),antiSlash(Board,Coord,0,Result).
-move(Board,1,Result) :- one(Coord),vertical(Board,Coord,1,Result).
-move(Board,1,Result) :- one(Coord),horizontal(Board,Coord,1,Result).
-move(Board,1,Result) :- one(Coord),slash(Board,Coord,1,Result).
-move(Board,1,Result) :- one(Coord),antiSlash(Board,Coord,1,Result).
-
-
-accesElement(Board,IndexL,IndexC,E) :- nth1(IndexL,Board,L),
-                             nth1(IndexC,L,E).
-							 
-							 
-giveValue(V,V).
-
-vertical(Board,(IndexL,IndexC),Player,R) :- verticalUp(Board,(IndexL,IndexC),Player,0,R).
-vertical(Board,(IndexL,IndexC),Player,R) :- verticalDown(Board,(IndexL,IndexC),Player,0,R).
-horizontal(Board,(IndexL,IndexC),Player,R) :- horizontalLeft(Board,(IndexL,IndexC),Player,0,R).
-horizontal(Board,(IndexL,IndexC),Player,R) :- horizontalRight(Board,(IndexL,IndexC),Player,0,R).
-slash(Board,(IndexL,IndexC),Player,R) :- slashUp(Board,(IndexL,IndexC),Player,0,R).
-slash(Board,(IndexL,IndexC),Player,R) :- slashDown(Board,(IndexL,IndexC),Player,0,R).
-antiSlash(Board,(IndexL,IndexC),Player,R) :- antiSlashUp(Board,(IndexL,IndexC),Player,0,R).
-antiSlash(Board,(IndexL,IndexC),Player,R) :- antiSlashDown(Board,(IndexL,IndexC),Player,0,R).
-
-:- [defDirection].
+gameOver(Board,Result) :- countMoves(Board,0,N1),countMoves(Board,1,N2),N1 =:= 0,N2 =:= 0,winner(Board,Result),!.
+gameOver(Board,Result) :- isBoardFull(Board),winner(Board,Result),!.
 											
+isBoardFull([H|T]):- isListFull(H), isBoardFull(T).
+isBoardFull([]).
+isListFull([X|L]) :- nonvar(X),isListFull(L).
+isListFull([]).
+
+nextPlayer(Player,Player1) :- NextPlayer is 1-Player,giveValue(NextPlayer,Player1).
+
+winner(Board,Result) :- countTotalDisk(Board,0,N1),countTotalDisk(Board,1,N2),juge(N1,N2,Result).
+
+countTotalDisk(Board,Player,N) :- caculate(Board,Player,0,N).
+caculate([L|Reste],Player,NbActuel,N) :- countTotalList(L,Player,0,NList),NbNew is NbActuel+NList,caculate(Reste,Player,NbNew,N).
+caculate([],_,V,V).
+countTotalList([X|L],Player,NbNow,NList) :- nonvar(X),X=:=Player,!,NewNb is NbNow+1,countTotalList(L,Player,NewNb,NList).
+countTotalList([_|L],Player,NbNow,NList) :- countTotalList(L,Player,NbNow,NList).
+countTotalList([],_,V,V).
+
+juge(X,Y,0) :- X > Y,!.
+juge(_,_,1).
+
+
 
 init :- assert(maxL(8)),
 		assert(maxC(8)),
@@ -57,6 +75,6 @@ init :- assert(maxL(8)),
         nth1(4,L8,1),
 		nth1(6,L3,1),
         assert(dynamic board/1),
-		[assertion],
-		initassert,
-        assert(board([L1,L2,L3,L4,L5,L6,L7,L8])).
+		[move],
+        assert(board([L1,L2,L3,L4,L5,L6,L7,L8])),
+		board(Board).
