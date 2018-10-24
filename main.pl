@@ -6,9 +6,9 @@ play(Board,Player,Result) :- chooseMove(Board,Player,Move),
                              nextPlayer(Player,Player1),
                              !,play(Board1,Player1,Result).
 
-chooseMove(Board,Player,Move) :- set_of(M,move(Board,Player,M),Moves),evaluate_and_choose(Moves,Board,(nil,-1000),Move).
+chooseMove(Board,Player,Move) :- setof(M,move(Board,Player,M),Moves),evaluateAndChoose(Moves,Board,(nil,-1000),Move).
 
-evaluate_and_choose([X|_],_,_,X).
+evaluateAndChoose([X|_],_,_,X).
 
 applyMove((X,Y),0,Board,Boardl) :- nth1(X,Board,L),
                                    nth1(Y,L,0),
@@ -30,8 +30,10 @@ println([]).
 println([X|L]) :- var(X),write('? '),!,println(L).
 println([X|L]) :- write(X),write(' '),!,println(L).
 
-gameOver(Board,Result) :- countMoves(Board,0,N1),countMoves(Board,1,N2),N1 =:= 0,N2 =:= 0,winner(Board,Result),!.
-gameOver(Board,Result) :- isBoardFull(Board),winner(Board,Result),!.
+gameOver(Board,_,Result) :- countMoves(Board,0,N1),countMoves(Board,1,N2),N1 =:= 0,N2 =:= 0,winner(Board,Result),!.
+gameOver(Board,_,Result) :- isBoardFull(Board),winner(Board,Result),!.
+
+announce(Result):- write("Et le gagnant est ... le joueur des "),write(Result),write("!"),nl.
 
 isBoardFull([H|T]):- isListFull(H), isBoardFull(T).
 isBoardFull([]).
@@ -70,8 +72,8 @@ init :- assert(maxL(8)),
         nth1(5,L3,0),
         nth1(5,L2,0),
         nth1(5,L5,1),
-        nth1(4,L6,0),
-        nth1(4,L7,0),
+        nth1(4,L6,1),
+        nth1(4,L7,1),
         nth1(4,L8,1),
         nth1(6,L3,1),
         assert(dynamic board/1),
@@ -82,14 +84,14 @@ init :- assert(maxL(8)),
 % generer un board à dimensions variables
 init2 :-
 		askForGameHeight(GameHeight),
-		make_matrix(GameHeight,Mat),
+		makeMatrix(GameHeight,Mat),
 		Index1 is GameHeight / 2,
 		Index2 is 1 + GameHeight / 2,
 		placeDisk(Index1,Index1,Mat,0),
 		placeDisk(Index1,Index2,Mat,1),
 		placeDisk(Index2,Index1,Mat,1),
 		placeDisk(Index2,Index2,Mat,0),
-		
+		[move],
         assert(dynamic board/1),
         assert(board(Mat)).
 		
@@ -100,12 +102,10 @@ askForGameHeight(GameHeight):- write('Saisir la taille du jeu : '), read(Input),
 							(Input mod 2 =:= 0 -> GameHeight is Input,!;var(GameHeight),
 							write("Taille invalide, veuillez saisir un nombre pair."),nl,askForGameHeight(GameHeight)).
 
-make_matrix(N, Mat) :- make_matrix(N,N,Mat).
-make_matrix(N, M, Mat) :- length(Mat,N),
-					 make_line(Mat,M).
+makeMatrix(N, Mat) :- makeMatrix(N,N,Mat).
+makeMatrix(N, M, Mat) :- length(Mat,N),
+					 makeLine(Mat,M).
 					 
-make_line([],M):- !.
-make_line([H|T],M):- length(H,M),
-					 make_line(T,M).
-							
-		
+makeLine([],M):- !.
+makeLine([H|T],M):- length(H,M),
+					 makeLine(T,M).
