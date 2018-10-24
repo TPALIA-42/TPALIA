@@ -92,6 +92,9 @@ init2 :-
 		
         assert(dynamic board/1),
         assert(board(Mat)).
+		
+
+placeDisk(IndexL,IndexC,Board,Disk) :- nth1(IndexL,Board,BoardLine),nth1(IndexC,BoardLine,Disk).
 
 askForGameHeight(GameHeight):- write('Saisir la taille du jeu : '), read(Input),nl,
 							(Input mod 2 =:= 0 -> GameHeight is Input,!;var(GameHeight),
