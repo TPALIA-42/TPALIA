@@ -14,7 +14,7 @@ move(Board,(IndexL,IndexC),_,(DirectionL,DirectionC),Counter,(MoveL,MoveC)) :- C
                                                                                MoveC is (IndexC+DirectionC),
                                                                                insideBoard(MoveL,MoveC),
                                                                                diskAt(Board,MoveL,MoveC,Disk),
-                                                                               var(Disk),!.
+                                                                               var(Disk).
 move(Board,(IndexL,IndexC),Player,(DirectionL,DirectionC),Counter,Move) :- NewIndexL is (IndexL+DirectionL),
                                                                            NewIndexC is (IndexC+DirectionC),
                                                                            insideBoard(NewIndexL,NewIndexC),
@@ -22,3 +22,5 @@ move(Board,(IndexL,IndexC),Player,(DirectionL,DirectionC),Counter,Move) :- NewIn
                                                                            nonvar(Disk),
                                                                            Disk=:=1-Player,
                                                                            move(Board,(NewIndexL,NewIndexC),Player,(DirectionL,DirectionC),Counter+1,Move).
+
+allMoves(Board,Player,Moves) :- setof(M,move(Board,Player,M),Moves).
