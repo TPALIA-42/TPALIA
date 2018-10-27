@@ -1,15 +1,13 @@
-# TPALIA
-update 22/10/2018:
-le programme se lance par le "main.pl",(consult main.pl) attention les fichiers doivent etre ds le meme ficher
+# TPALIA - Ohtello/Reversi
 
-pour lancer:     start.
+Pour lancer le jeu, il faut effectuer lancer la query `?- init,play.` à partir du fichier `main.pl`.
 
-  il y aura une interface naive qui va etre ameliore apres 
-  
-pour trouver une place qu'on peut mettre la piece:  board(B),move(B,1,R).
+Pour spécifier/changer la taille de la grille directement (nombre `N` pair seulement) : `?- init(N).`
 
-  il y affichera les places qui sont possible(cherche dans tous les direction : hori,diag,verti) de mettre le piece.(";"pour la prochaine)
-
-Du coup, il nous reste encore la AI, qui est plus important. Bon courage!
-
-  
+Projet réalisé par :
+- Paul Du
+- Zhenyu Yang
+- Hua Yang
+- Simon Fery
+- Baptiste Thivend
+- Jürgen Hetch
