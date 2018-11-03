@@ -47,21 +47,22 @@ play() :- board(Board), play(Board,0,_).
 
 play(Player) :- board(Board), play(Board,Player,_).
 
-play(Board,Player,Result) :- displayGame(Board,Player),
+play(Board,Player,Result) :- canPlay(Board,Player),
+                             displayGame(Board,Player),
                              chooseMove(Board,Player,Move),
                              applyMove(Move,Player,Board,NewBoard),
-                             retract(board(Board)),
-                             assert(board(NewBoard)),
                              nextPlayer(NewBoard,Player,NextPlayer),
                              !,play(NewBoard,NextPlayer,Result).
 
-play(Board,_,Result) :- winner(Board,Result),!,announce(Result),!.
+play(Board,_,Result) :- displayFinalGame(Board),winner(Board,Result),!,announce(Result),!.
 
 
 %% --- Display Game
 displayGame(L,Player) :-  maxL(GameHeight),write('*--- Tour de '),write(Player),writeln(' ---*'),nl,displayIndex(1,GameHeight),nl,!,displayBoard(L,Player,1).
 displayBoard([X|L],Player,IndexL) :- write(IndexL),write(' '),displayLine(X),nl,NewIndexL is IndexL + 1,displayBoard(L,Player,NewIndexL).
 displayBoard([],_,_) :- writeln('*-----------------*'),nl,!.
+
+displayFinalGame(L) :- write('*--- Final Board'),writeln(' ---*'),!,displayBoard(L,-1,1).
 
 displayLine([]).
 displayLine([X|L]) :- var(X),write('_   '),!,displayLine(L).
@@ -72,8 +73,8 @@ displayIndex(N,GameHeight) :- write('  '),!,(N == GameHeight ->write(N),true; wr
 %% --- Choose Move ---
 chooseMove(Board,Player,Move) :- (isHuman(Player) -> chooseMoveHuman(Board,Player,Move); chooseMoveIA(Board,Player,Move)).
 
-chooseMoveIA(Board,Player,Move) :- allMoves(Board,Player,Moves),board(OriginalBoard),
-                                   evaluateAndChoose(Moves,Player,Board,OriginalBoard,0,3,1,(nil,-1000),(Move,_)).
+chooseMoveIA(Board,Player,Move) :- allMoves(Board,Player,Moves),
+                                   evaluateAndChoose(Moves,Player,Board,Board,0,1,1,(nil,-1000),(Move,_)).
 
 chooseMoveHuman(Board,Player,Move) :- allMoves(Board,Player,Moves),
                                       write('Liste des coups disponibles : '),write(Moves),nl,
@@ -139,8 +140,9 @@ applyMove((X,Y),Player,Board,NewBoard) :- replace(Board,ModifBoard,1,X,Y,Player)
                                           transformBoard((X,Y),Player,ModifBoard,NewBoard).
 
 %% --- Next Player
-nextPlayer(Board,Actual,Next) :- Next is 1-Actual,move(Board,Next,_),!.
-nextPlayer(Board,Actual,Actual) :- move(Board,Actual,_),!.
+canPlay(Board,Player) :- move(Board,Player,_),!.
+nextPlayer(Board,Actual,Next) :- Next is 1-Actual,canPlay(Board,Next),!.
+nextPlayer(Board,Actual,Actual).
 
 
 %% --- Winner and Announce
