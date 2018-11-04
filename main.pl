@@ -16,6 +16,7 @@ init(GameHeight,NbOfPlayers) :- GameHeight mod 2 =:= 0,
 [board],
 [move],
 [transformBoard],
+[heuristics],
 
 retractall(isHuman(_)),
 (NbOfPlayers >= 1 -> write('Le joueur 0 est humain.'), nl, assert(isHuman(0)) ; write('Le joueur 0 est une IA.'),nl),
@@ -95,9 +96,10 @@ assignMove(Move,Move).
 %% in List and unifies it with Elt.
 choose([], []).
 choose(List, Elt) :-
-length(List, Length),
-random(0, Length, Index),
-nth0(Index, List, Elt).
+    length(List, Length),
+    random(0, Length, Index),
+    nth0(Index, List, Elt).
+
 evaluateAndChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,Record,Best) :-
                                 applyMove(Move,Player,Board,NewBoard),
                                 minimax(Depth,Player,NewBoard,OriginalBoard,MaxMin,MoveX,Value),
@@ -105,36 +107,6 @@ evaluateAndChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,R
                                 NewCounter is Counter+1,
                                 evaluateAndChoose(Moves,Player,Board,OriginalBoard,NewCounter,Depth,MaxMin,NewRecord,Best).
 evaluateAndChoose([],_,_,_,_,_,_,Record,Record) :- !.
-
-giveValue(V,V).
-
-minimax(0,Player,Board,OriginalBoard,MaxMin,_,Value) :- value(Player,Board,OriginalBoard,0,V),Val is V*MaxMin,giveValue(Value,Val),!.
-
-minimax(D,Player,Board,OriginalBoard,MaxMin,Move,Value) :- D > 0,
-                                NewPlayer is 1-Player,
-                                D1 is D-1,
-                                MinMax is -1*MaxMin,
-                                setof(M,move(Board,NewPlayer,M),Moves),
-                                !,
-                                evaluateAndChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-1000),(Move,Value)).
-minimax(_,_,_,_,MaxMin,nil,1000) :- MaxMin =:= 1,!.
-minimax(_,_,_,_,MaxMin,nil,-1000) :- MaxMin =:= -1,!.
-
-update(Move,Value,_,(Move,Value),_,0) :- !.
-update(Move,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =< Value1.
-update(Move,Value,(Move1,Value1),(Move,Value),1,_) :- Value > Value1.
-update(Move,Value,(Move1,Value1),(Move,Value),-1,_) :- Value < Value1.
-update(Move,Value,(Move1,Value1),(Move1,Value1),-1,_) :- Value >= Value1.
-
-value(Player,[X|L],[OX|OL],VStart,V) :- compare(Player,X,OX,0,N),NewStart is N+VStart,value(Player,L,OL,NewStart,V).
-value(_,[],[],V,V).
-compare(Player,[E|L],[OE|OL],TempN,N) :- nonvar(E),nonvar(OE),E =:= Player,OE =:= 1-Player,NewN is TempN+1,compare(Player,L,OL,NewN,N).
-compare(Player,[E|L],[OE|OL],TempN,N) :- nonvar(E),nonvar(OE),E =:= 1-Player,OE =:= Player,NewN is TempN-1,compare(Player,L,OL,NewN,N).
-compare(Player,[E|L],[OE|OL],TempN,N) :- nonvar(E),nonvar(OE),E =:= OE,compare(Player,L,OL,TempN,N).
-compare(Player,[E|L],[OE|OL],TempN,N) :- var(E),var(OE),compare(Player,L,OL,TempN,N).
-compare(Player,[E|L],[OE|OL],TempN,N) :- nonvar(E),var(OE),E =:= Player,NewN is TempN+1,compare(Player,L,OL,NewN,N).
-compare(Player,[E|L],[OE|OL],TempN,N) :- nonvar(E),var(OE),E =:= 1-Player,NewN is TempN-1,compare(Player,L,OL,NewN,N).
-compare(_,[],[],N,N) :- !.
 
 
 %% --- Apply Move---
