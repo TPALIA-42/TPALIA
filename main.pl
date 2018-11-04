@@ -95,9 +95,11 @@ moveIsLegal(Move,[_|RestOfMoves]):- moveIsLegal(Move,RestOfMoves).
 %% in List and unifies it with Elt.
 choose([], []).
 choose(List, Elt) :-
-length(List, Length),
-random(0, Length, Index),
-nth0(Index, List, Elt).
+    length(List, Length),
+    random(0, Length, Index),
+    nth0(Index, List, Elt).
+
+%% --- MinMax heuristic ---
 evaluateAndChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,Record,Best) :-
                                 applyMove(Move,Player,Board,NewBoard),
                                 minimax(Depth,Player,NewBoard,OriginalBoard,MaxMin,MoveX,Value),
@@ -117,6 +119,41 @@ minimax(D,Player,Board,OriginalBoard,MaxMin,Move,Value) :- D > 0,
                                 evaluateAndChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-1000),(Move,Value)).
 minimax(_,_,_,_,MaxMin,nil,1000) :- MaxMin =:= 1,!.
 minimax(_,_,_,_,MaxMin,nil,-1000) :- MaxMin =:= -1,!.
+
+
+%% ---AlphaBeta heuristic ---
+evaluateAndChoose([Move|Moves], Player, Board, OriginalBoard, Counter, Depth, Alpha, Beta, Move1, BestMove) :-
+    applyMove(Move, Player, Board, NewBoard),
+    alphabeta(Depth, Player, NewBoard, OriginalBoard, Alpha, Beta, MoveX, Value),
+    Value1 is -Value,
+    NewCounter is Counter + 1
+    cutoff(Move, Value1,NewCounter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove).
+evaluateAndChoose([],_,_,_,_,_,_,_,Record,Record) :- !.
+
+alphabeta(0, Player, Board, OriginalBoard, Alpha, Beta, Move, Value):-
+    value(Player, Board, OriginalBoard, 0, V).
+
+alphabeta(Depth, Player, Board, OriginalBoard, Alpha, Beta, Move, Value):-
+    Alpha1 is -Beta,
+    Beta1 is -Alpha,
+    D1 is D-1,
+    NewPlayer is 1 - Player
+    setof(M,move(Board,NewPlayer,M),Moves),
+    evaluateAndChoose(Moves, NewPlayer, Board, OriginalBoard, Counter, D1, Alpha1, Beta1, (nil,-1000),(Move,Value)).
+
+cutoff(Move, Value,Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, (Move, Value)):-
+    Value >= Beta.
+
+cutoff(Move, Value,Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
+    Alpha < Value, Value >Beta,
+    evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Value, Beta, Move, BestMove).
+
+cutoff(Move, Value,Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
+    Value < Alpha.
+    evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Alpha, Beta, Move1, BestMove).
+
+
+
 
 update(Move,Value,_,(Move,Value),_,0) :- !.
 update(Move,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =< Value1.
