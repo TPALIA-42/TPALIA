@@ -1,6 +1,6 @@
 %% --- Random IA ---
-choose([], []).
-choose(List, Elt) :-
+randomChoose([], []).
+randomChoose(List, Elt) :-
     length(List, Length),
     random(0, Length, Index),
     nth0(Index, List, Elt).
@@ -63,8 +63,6 @@ cutoff((MoveL,MoveC), Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoar
 cutoff(Move, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
     Value =< Alpha,
     evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Alpha, Beta, Move1, BestMove).
-
-
 
 
 update(Move,Value,_,(Move,Value),_,0) :- !.

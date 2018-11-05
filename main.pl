@@ -1,8 +1,9 @@
 %% --- INIT ---
 init :- askForGameHeight(GameHeight),
         askForNumberOfPlayers(NbOfPlayers),
-        init(GameHeight,NbOfPlayers).
-
+        (NbOfPlayers < 2 -> askForHeuristic(1,Heuristic1) ; Heuristic1 is 0),
+        (NbOfPlayers =:= 0 -> askForHeuristic(0,Heuristic0) ; Heuristic0 is 0),
+        init(GameHeight,NbOfPlayers,Heuristic0,Heuristic1).
 
 %% -- Ask size of game board: must be even --
 askForGameHeight(GameHeight) :- write('Saisir la taille du jeu : '),
@@ -16,30 +17,48 @@ askForNumberOfPlayers(NbOfPlayers) :- write('Saisir le nombre de joueurs humains
                                       ((Input =< 2, Input >= 0) ->  NbOfPlayers is Input;
                                       write('Nombre invalide, veuillez le resaisir.'),askForNumberOfPlayers(NbOfPlayers)).
 
+%% -- Ask for the heuristic for the AI Player --
+askForHeuristic(Player,Heuristic) :- writeln('Liste des heuristiques :'),
+                                     writeln('- 0. Coup en haut à gauche'),
+                                     writeln('- 1. Aléatoire'),
+                                     writeln('- 2. Basique'),
+                                     writeln('- 3. Minimax'),
+                                     writeln('- 4. Minimax avec élagage alpha-beta'),
+                                     write('Quelle heuristique voulez-vous choisir pour le joueur '),write(Player),writeln(' :'),
+                                     read(Input),nl,
+                                     ((Input =< 4, Input >= 0) ->  Heuristic is Input;
+                                     write('Nombre invalide, veuillez le resaisir.'),askForHeuristic(Heuristic)).
 %% -- Set initial game --
-init(GameHeight,NbOfPlayers) :- 
-                                GameHeight mod 2 =:= 0,
-                                [board],
-                                [move],
-                                [transformBoard],
-                                [heuristics],
-                                
-                                %% - Cancel previous settings
-                                retractall(isHuman(_)),
-                                retractall(maxL(_)),
-                                retractall(maxC(_)),
-                                retractall(board(_)),
+init(GameHeight,1,Heuristic1) :- init(GameHeight,1,0,Heuristic1).
+init(GameHeight,2) :- init(GameHeight,2,0,0).
 
-                                %% - Set parameters for the game
-                                (NbOfPlayers >= 1 -> write('Le joueur 0 est humain.'), nl, assert(isHuman(0)) ; write('Le joueur 0 est une IA.'),nl),
-                                (NbOfPlayers =:= 2 -> write('Le joueur 1 est humain.'), nl, assert(isHuman(1)) ; write('Le joueur 1 est une IA.'),nl),
-                                nl,                               
-                                assert(maxL(GameHeight)),
-                                assert(maxC(GameHeight)),
-                                makeMatrix(GameHeight,Mat),
-                                
-                                putInitialsDisks(GameHeight, Mat),
-                                assert(board(Mat)).
+init(GameHeight,NbOfPlayers,Heuristic0,Heuristic1) :- 
+                                                      GameHeight mod 2 =:= 0,
+                                                      [board],
+                                                      [move],
+                                                      [transformBoard],
+                                                      [heuristics],
+                                                    
+                                                      %% - Cancel previous settings
+                                                      retractall(isHuman(_)),
+                                                      retractall(maxL(_)),
+                                                      retractall(maxC(_)),
+                                                      retractall(board(_)),
+                                                      retractall(heuristic(_,_)),
+
+                                                      %% - Set parameters for the game
+                                                      (NbOfPlayers >= 1 -> write('Le joueur 0 est humain.'), nl, assert(isHuman(0)) ; write('Le joueur 0 est une IA avec l\'heuristique '),write(Heuristic0),write('.'),nl),
+                                                      (NbOfPlayers =:= 2 -> write('Le joueur 1 est humain.'), nl, assert(isHuman(1)) ; write('Le joueur 1 est une IA avec l\'heuristique '),write(Heuristic1),write('.'),nl),
+                                                      nl,                               
+                                                      assert(maxL(GameHeight)),
+                                                      assert(maxC(GameHeight)),
+                                                      makeMatrix(GameHeight,Mat),
+                                                      assert(heuristic(0,Heuristic0)),
+                                                      assert(heuristic(1,Heuristic1)),
+                                                      assert(depth(2)),
+                                                    
+                                                      putInitialsDisks(GameHeight, Mat),
+                                                      assert(board(Mat)).
 
 %% -- Set initial game board with the regular 4 disks --
 putInitialsDisks(GameHeight, Mat):-
@@ -69,20 +88,22 @@ play(Board,_,Result) :- displayFinalGame(Board),winner(Board,Result),!,announce(
 
 
 %% -- Display game board
-displayGame(L,Player) :-  maxL(GameHeight),write('*--- Tour de '),write(Player),writeln(' ---*'),nl,displayIndex(1,GameHeight),nl,!,displayBoard(L,Player,1).
-displayBoard([X|L],Player,IndexL) :- write(IndexL),write(' '),displayLine(X),nl,NewIndexL is IndexL + 1,displayBoard(L,Player,NewIndexL).
-displayBoard([],_,_) :- writeln('*-----------------*'),nl,!.
+displayGame(L,Player) :-  maxL(GameHeight),write('*----------- Tour de '),write(Player),writeln(' ----------*'),nl,displayIndex(1,GameHeight),nl,!,displayBoard(L,Player,1).
+displayBoard([X|L],Player,IndexL) :- write(IndexL),write(' | '),displayLine(X),nl,NewIndexL is IndexL + 1,displayBoard(L,Player,NewIndexL).
+displayBoard([],_,_) :- writeln('*-------------------------------*'),nl,!.
 
-displayFinalGame(L) :- write('*--- Final Board'),writeln(' ---*'),!,displayBoard(L,-1,1).
+displayFinalGame(L) :- maxL(GameHeight),writeln('*--------- Plateau final --------*'),nl,displayIndex(1,GameHeight),nl,!,displayBoard(L,-1,1).
 
 displayLine([]).
 displayLine([X|L]) :- var(X),write('_   '),!,displayLine(L).
 displayLine([X|L]) :- write(X),write('   '),!,displayLine(L).
 
-displayIndex(N,GameHeight) :- write('  '),!,(N == GameHeight ->write(N),true; write(N),write(' '),N1 is N+1,displayIndex(N1,GameHeight) ).
+displayIndex(GameHeight,GameHeight) :- write('  '),write(GameHeight),nl,write('----------------------------------'), !.
+displayIndex(1,GameHeight) :- write('  | 1 '),displayIndex(2,GameHeight).
+displayIndex(N,GameHeight) :- write('  '),write(N),write(' '),N1 is N+1,displayIndex(N1,GameHeight).
 
 %% -- Choose move --
-chooseMove(Board,Player,Move) :- (isHuman(Player) -> chooseMoveHuman(Board,Player,Move); chooseMoveIA(Board,Player,Move)).
+chooseMove(Board,Player,Move) :- (isHuman(Player) -> chooseMoveHuman(Board,Player,Move); chooseMoveAI(Board,Player,Move)).
 
 %% - Human move: must check if enable
 chooseMoveHuman(Board,Player,Move) :- allMoves(Board,Player,Moves),
@@ -99,24 +120,28 @@ askForMove((MoveL,MoveC),Moves) :- write('L : '),read(InputL),nl,
 moveIsLegal(Move,[Move|_]).
 moveIsLegal(Move,[_|RestOfMoves]):- moveIsLegal(Move,RestOfMoves).
 
-% - IA move: play according to heuristics TODO -
-chooseMoveIA(Board,Player,Move) :- allMoves(Board,Player,Moves),
-                                   Counter is 0,
-                                   Depth is 3,
-                                   MaxMin is 1,
-                                   Alpha is -10000,
-                                   Beta is 10000,
-                                   evaluateAndChoose(Moves,Player,Board,Board,Counter,Depth,Alpha,Beta,nil,(Move,_)).
-                                   %evaluateAndChoose(Moves,Player,Board,Board,Counter,Depth,MaxMin,(nil,-1000),(Move,_)).
-
+% - AI move: play according to heuristics -
+chooseMoveAI(Board,Player,Move) :- heuristic(Player,Heuristic), chooseMoveAI(Board,Player,Move,Heuristic), !.
+chooseMoveAI(Board,Player,Move,0) :- allMoves(Board,Player,Moves),nth1(1,Moves,Move).
+chooseMoveAI(Board,Player,Move,1) :- allMoves(Board,Player,Moves),randomChoose(Moves,Move).
+chooseMoveAI(Board,Player,Move,3) :- allMoves(Board,Player,Moves),
+                                     depth(Depth),
+                                     Counter is 0,
+                                     MaxMin is 1,
+                                     evaluateAndChoose(Moves,Player,Board,Board,Counter,Depth,MaxMin,(nil,-1000),(Move,_)).
+chooseMoveAI(Board,Player,Move,4) :- allMoves(Board,Player,Moves),
+                                     depth(Depth),
+                                     Counter is 0,
+                                     Alpha is -10000,
+                                     Beta is 10000,
+                                     evaluateAndChoose(Moves,Player,Board,Board,Counter,Depth,Alpha,Beta,nil,(Move,_)).
 %% -- Apply move --
 applyMove((X,Y),Player,Board,NewBoard) :- replace(Board,ModifBoard,1,X,Y,Player),
                                           transformBoard((X,Y),Player,ModifBoard,NewBoard).
 
 %% -- Next player -- 
 canPlay(Board,Player) :- move(Board,Player,_),!.
-nextPlayer(Board,Actual,Next) :- Next is 1-Actual. %,canPlay(Board,Next),!.
-%nextPlayer(Board,Actual,Actual).
+nextPlayer(Board,Actual,Next) :- Next is 1-Actual.
 
 
 %% -- Get winner of the game --

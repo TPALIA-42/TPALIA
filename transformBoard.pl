@@ -11,7 +11,7 @@ transformBoard((IndexL,IndexC),Player,Board,NewBoard) :- bagof((DL,DC),direction
 
 transformBoard(_,[],_,Board,Board) :- !.
 transformBoard((IndexL,IndexC),[D|Remaining],Player,Board,NewBoard) :- transform((IndexL,IndexC),D,Player,[],Board,BoardInter),
-    transformBoard((IndexL,IndexC),Remaining,Player,BoardInter,NewBoard).
+                                                                       transformBoard((IndexL,IndexC),Remaining,Player,BoardInter,NewBoard).
 
 changeList(B,B,[],_).
 changeList(Board,NewBoard,[(IndexL,IndexC)|L],Player) :- replace(Board,ModifBoard,1,IndexL,IndexC,Player),changeList(ModifBoard,NewBoard,L,Player).
