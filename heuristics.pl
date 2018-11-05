@@ -31,21 +31,21 @@ minimax(D,Player,Board,OriginalBoard,MaxMin,Move,Value) :- D > 0,
 %% ---AlphaBeta heuristic ---
 alphaBetaChoose([Move|Moves],Player,Board,OriginalBoard,Depth,Alpha,Beta,Record,Best) :-
                                                                     applyMove(Move,Player,Board,NewBoard),
-                                                                    alphaBeta(Depth,Player,NewBoard,OriginalBoard,Alpha,Beta,MoveX,Value),
-                                                                    cutoff(Move,Value,Player,Board,OriginalBoard,Depth,Alpha,Beta,Moves,Record,Best).
+                                                                    NewPlayer is 1-Player,
+                                                                    alphaBeta(Depth,NewPlayer,NewBoard,OriginalBoard,Alpha,Beta,MoveX,Value),
+                                                                    Value1 is -1*Value,
+                                                                    cutoff(Move,Value1,Player,Board,OriginalBoard,Depth,Alpha,Beta,Moves,Record,Best).
 alphaBetaChoose([],_,_,_,_,Alpha,_,Record,(Record,Alpha)) :- !.
 
 alphaBeta(0,Player,Board,OriginalBoard,_,_,_,Value) :- value(Player,Board,OriginalBoard,0,Value),!.
 
 alphaBeta(D,Player,Board,OriginalBoard,Alpha,Beta,Move,Value) :- D > 0,
-                                                    NewPlayer is 1-Player,
                                                     D1 is D-1,
                                                     Alpha1 is -1*Beta,
                                                     Beta1 is -1*Alpha,
-                                                    setof(M,move(Board,NewPlayer,M),Moves),
+                                                    setof(M,move(Board,Player,M),Moves),
                                                     !,
-                                                    alphaBetaChoose(Moves,NewPlayer,Board,OriginalBoard,D1,Alpha1,Beta1,nil,(Move,Value1)),
-                                                    Value is -1*Value1.
+                                                    alphaBetaChoose(Moves,Player,Board,OriginalBoard,D1,Alpha1,Beta1,nil,(Move,Value)).
                                                     
 cutoff(Move,Value,_,_,_,_,_,Beta,_,_,(Move,Value)) :-
     Value >= Beta,!.
