@@ -74,8 +74,14 @@ displayIndex(N,GameHeight) :- write('  '),!,(N == GameHeight ->write(N),true; wr
 chooseMove(Board,Player,Move) :- (isHuman(Player) -> chooseMoveHuman(Board,Player,Move); chooseMoveIA(Board,Player,Move)).
 
 chooseMoveIA(Board,Player,Move) :- allMoves(Board,Player,Moves),
-                                   evaluateAndChoose(Moves,Player,Board,Board,0,1,1,(nil,-1000),(Move,_)).
-
+                                   Counter is 0,
+                                   Depth is 3,
+                                   MaxMin is 1,
+                                   Alpha is -10000,
+                                   Beta is 10000,
+                                   evaluateAndChoose(Moves,Player,Board,Board,Counter,Depth,Alpha,Beta,nil,(Move,_)).
+                                   %evaluateAndChoose(Moves,Player,Board,Board,Counter,Depth,MaxMin,(nil,-1000),(Move,_)).
+                                   
 chooseMoveHuman(Board,Player,Move) :- allMoves(Board,Player,Moves),
                                       write('Liste des coups disponibles : '),write(Moves),nl,
                                       write('Choisissez un coup : '),nl,
@@ -108,54 +114,62 @@ evaluateAndChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,R
                                 evaluateAndChoose(Moves,Player,Board,OriginalBoard,NewCounter,Depth,MaxMin,NewRecord,Best).
 evaluateAndChoose([],_,_,_,_,_,_,Record,Record) :- !.
 
-minimax(0,Player,Board,OriginalBoard,MaxMin,_,Value) :- value(Player,Board,OriginalBoard,0,V),Value is V*MaxMin,!.
-
 minimax(D,Player,Board,OriginalBoard,MaxMin,Move,Value) :- D > 0,
                                 NewPlayer is 1-Player,
                                 D1 is D-1,
                                 MinMax is -1*MaxMin,
-                                setof(M,move(Board,NewPlayer,M),Moves),
+                                setof(M,move(Board,Player,M),Moves),
                                 !,
                                 evaluateAndChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-1000),(Move,Value)).
-minimax(_,_,_,_,MaxMin,nil,1000) :- MaxMin =:= 1,!.
-minimax(_,_,_,_,MaxMin,nil,-1000) :- MaxMin =:= -1,!.
 
+minimax(_,Player,Board,OriginalBoard,MaxMin,nil,Value) :- value(Player,Board,OriginalBoard,0,V),Value is V*MaxMin,!.
 
 %% ---AlphaBeta heuristic ---
 evaluateAndChoose([Move|Moves], Player, Board, OriginalBoard, Counter, Depth, Alpha, Beta, Move1, BestMove) :-
     applyMove(Move, Player, Board, NewBoard),
-    alphabeta(Depth, Player, NewBoard, OriginalBoard, Alpha, Beta, MoveX, Value),
-    Value1 is -Value,
-    NewCounter is Counter + 1
-    cutoff(Move, Value1,NewCounter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove).
-evaluateAndChoose([],_,_,_,_,_,_,_,Record,Record) :- !.
+    NewPlayer is 1 - Player,
+    alphaBeta(Depth, NewPlayer, NewBoard, OriginalBoard, Alpha, Beta, MoveX, Value),
+    NewValue is -Value,
+    NewCounter is Counter + 1,
+    cutoff(Move, NewValue, NewCounter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove).
 
-alphabeta(0, Player, Board, OriginalBoard, Alpha, Beta, Move, Value):-
-    value(Player, Board, OriginalBoard, 0, V).
+evaluateAndChoose([],_,_,_,_,_,Alpha,_,Move,(Move,Alpha)).
 
-alphabeta(Depth, Player, Board, OriginalBoard, Alpha, Beta, Move, Value):-
+alphaBeta(Depth, Player, Board, OriginalBoard, Alpha, Beta, Move, Value):-
+    Depth > 0,
     Alpha1 is -Beta,
     Beta1 is -Alpha,
-    D1 is D-1,
-    NewPlayer is 1 - Player
-    setof(M,move(Board,NewPlayer,M),Moves),
-    evaluateAndChoose(Moves, NewPlayer, Board, OriginalBoard, Counter, D1, Alpha1, Beta1, (nil,-1000),(Move,Value)).
+    NewDepth is Depth-1,
+    setof(M,move(Board,Player,M),Moves),
+    !,
+    evaluateAndChoose(Moves, Player, Board, OriginalBoard, 0, NewDepth, Alpha1, Beta1, nil, (Move, Value)).
 
-cutoff(Move, Value,Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, (Move, Value)):-
+alphaBeta(_, Player, Board, OriginalBoard, Alpha, Beta, Move, Value):-
+    value(Player, Board, OriginalBoard, 0, Value), !.
+
+cutoff(Move, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, (Move, Value)):-
     Value >= Beta.
 
-cutoff(Move, Value,Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
-    Alpha < Value, Value >Beta,
+cutoff(Move, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
+    Alpha < Value, Value < Beta,
     evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Value, Beta, Move, BestMove).
 
-cutoff(Move, Value,Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
-    Value < Alpha.
+cutoff((MoveL,MoveC), Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, (Move1L,Move1C), BestMove):-
+    Value =:= Alpha, nonvar(Move1L), nonvar(Move1C), (MoveL > Move1L;(MoveL =:= Move1L, MoveC > Move1C)),
+    evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Alpha, Beta, (MoveL, MoveC), BestMove).
+    
+cutoff(Move, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
+    Value =< Alpha,
     evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Alpha, Beta, Move1, BestMove).
 
 
 
 
 update(Move,Value,_,(Move,Value),_,0) :- !.
+
+update((MoveL,MoveC),Value,((Move1L,Move1C),Value1),((MoveL,MoveC),Value),1,_) :- Value =:= Value1, (MoveL > Move1L;(MoveL =:= Move1L, MoveC > Move1C)).
+update(Move,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =:= Value1.
+
 update(Move,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =< Value1.
 update(Move,Value,(Move1,Value1),(Move,Value),1,_) :- Value > Value1.
 update(Move,Value,(Move1,Value1),(Move,Value),-1,_) :- Value < Value1.
@@ -178,8 +192,8 @@ applyMove((X,Y),Player,Board,NewBoard) :- replace(Board,ModifBoard,1,X,Y,Player)
 
 %% --- Next Player
 canPlay(Board,Player) :- move(Board,Player,_),!.
-nextPlayer(Board,Actual,Next) :- Next is 1-Actual,canPlay(Board,Next),!.
-nextPlayer(Board,Actual,Actual).
+nextPlayer(Board,Actual,Next) :- Next is 1-Actual. %,canPlay(Board,Next),!.
+%nextPlayer(Board,Actual,Actual).
 
 
 %% --- Winner and Announce
