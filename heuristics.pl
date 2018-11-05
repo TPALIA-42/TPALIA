@@ -1,11 +1,10 @@
-%% https://stackoverflow.com/questions/2261238/random-items-in-prolog
-%% choose(List, Elt) - chooses a random element
-%% in List and unifies it with Elt.
+%% --- Random IA ---
 choose([], []).
 choose(List, Elt) :-
     length(List, Length),
     random(0, Length, Index),
     nth0(Index, List, Elt).
+
 
 %% --- MinMax heuristic ---
 evaluateAndChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,Record,Best) :-
@@ -25,6 +24,7 @@ minimax(D,Player,Board,OriginalBoard,MaxMin,Move,Value) :- D > 0,
                                 evaluateAndChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-1000),(Move,Value)).
 
 minimax(_,Player,Board,OriginalBoard,MaxMin,nil,Value) :- value(Player,Board,OriginalBoard,0,V),Value is V*MaxMin,!.
+
 
 %% ---AlphaBeta heuristic ---
 evaluateAndChoose([Move|Moves], Player, Board, OriginalBoard, Counter, Depth, Alpha, Beta, Move1, BestMove) :-
