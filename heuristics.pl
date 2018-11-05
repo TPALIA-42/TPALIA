@@ -7,67 +7,59 @@ randomChoose(List, Elt) :-
 
 
 %% --- MinMax heuristic ---
-evaluateAndChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,Record,Best) :-
+minimaxChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,Record,Best) :-
                                 applyMove(Move,Player,Board,NewBoard),
                                 minimax(Depth,Player,NewBoard,OriginalBoard,MaxMin,_,Value),
                                 update(Move,Value,Record,NewRecord,MaxMin,Counter),
                                 NewCounter is Counter+1,
-                                evaluateAndChoose(Moves,Player,Board,OriginalBoard,NewCounter,Depth,MaxMin,NewRecord,Best).
-evaluateAndChoose([],_,_,_,_,_,_,Record,Record) :- !.
+                                minimaxChoose(Moves,Player,Board,OriginalBoard,NewCounter,Depth,MaxMin,NewRecord,Best).
+minimaxChoose([],_,_,_,_,_,_,Record,Record) :- !.
+
+minimax(0,Player,Board,OriginalBoard,MaxMin,_,Value) :- value(Player,Board,OriginalBoard,0,V),Value is V*MaxMin,!.
 
 minimax(D,Player,Board,OriginalBoard,MaxMin,Move,Value) :- D > 0,
                                 NewPlayer is 1-Player,
                                 D1 is D-1,
                                 MinMax is -1*MaxMin,
-                                setof(M,move(Board,Player,M),Moves),
+                                setof(M,move(Board,NewPlayer,M),Moves),
                                 !,
-                                evaluateAndChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-1000),(Move,Value)).
-
-minimax(_,Player,Board,OriginalBoard,MaxMin,nil,Value) :- value(Player,Board,OriginalBoard,0,V),Value is V*MaxMin,!.
+                                minimaxChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-1000),(Move,Value)).
+%minimax(D,_,_,_,MaxMin,nil,Value) :- MaxMin =:= 1,Value is 1000*D,!.
+%minimax(D,_,_,_,MaxMin,nil,Value) :- MaxMin =:= -1,Value is -1000*D,!.
 
 
 %% ---AlphaBeta heuristic ---
-evaluateAndChoose([Move|Moves], Player, Board, OriginalBoard, Counter, Depth, Alpha, Beta, Move1, BestMove) :-
-    applyMove(Move, Player, Board, NewBoard),
-    NewPlayer is 1 - Player,
-    alphaBeta(Depth, NewPlayer, NewBoard, OriginalBoard, Alpha, Beta, _, Value),
-    NewValue is -Value,
-    NewCounter is Counter + 1,
-    cutoff(Move, NewValue, NewCounter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove).
+alphaBetaChoose([Move|Moves],Player,Board,OriginalBoard,Depth,Alpha,Beta,Record,Best) :-
+                                                                    applyMove(Move,Player,Board,NewBoard),
+                                                                    alphaBeta(Depth,Player,NewBoard,OriginalBoard,Alpha,Beta,MoveX,Value),
+                                                                    cutoff(Move,Value,Player,Board,OriginalBoard,Depth,Alpha,Beta,Moves,Record,Best).
+alphaBetaChoose([],_,_,_,_,Alpha,_,Record,(Record,Alpha)) :- !.
 
-evaluateAndChoose([],_,_,_,_,_,Alpha,_,Move,(Move,Alpha)).
+alphaBeta(0,Player,Board,OriginalBoard,_,_,_,Value) :- value(Player,Board,OriginalBoard,0,Value),!.
 
-alphaBeta(Depth, Player, Board, OriginalBoard, Alpha, Beta, Move, Value):-
-    Depth > 0,
-    Alpha1 is -Beta,
-    Beta1 is -Alpha,
-    NewDepth is Depth-1,
-    setof(M,move(Board,Player,M),Moves),
-    !,
-    evaluateAndChoose(Moves, Player, Board, OriginalBoard, 0, NewDepth, Alpha1, Beta1, nil, (Move, Value)).
+alphaBeta(D,Player,Board,OriginalBoard,Alpha,Beta,Move,Value) :- D > 0,
+                                                    NewPlayer is 1-Player,
+                                                    D1 is D-1,
+                                                    Alpha1 is -1*Beta,
+                                                    Beta1 is -1*Alpha,
+                                                    setof(M,move(Board,NewPlayer,M),Moves),
+                                                    !,
+                                                    alphaBetaChoose(Moves,NewPlayer,Board,OriginalBoard,D1,Alpha1,Beta1,nil,(Move,Value1)),
+                                                    Value is -1*Value1.
+                                                    
+cutoff(Move,Value,_,_,_,_,_,Beta,_,_,(Move,Value)) :-
+    Value >= Beta,!.
 
-alphaBeta(_, Player, Board, OriginalBoard, _, _, _, Value):-
-    value(Player, Board, OriginalBoard, 0, Value), !.
-
-cutoff(Move, Value, _, _, _, Beta, _, _, _, _, _, (Move, Value)):-
-    Value >= Beta.
-
-cutoff(Move, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, _, BestMove):-
-    Alpha < Value, Value < Beta,
-    evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Value, Beta, Move, BestMove).
-
-cutoff((MoveL,MoveC), Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, (Move1L,Move1C), BestMove):-
-    Value =:= Alpha, nonvar(Move1L), nonvar(Move1C), (MoveL > Move1L;(MoveL =:= Move1L, MoveC > Move1C)),
-    evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Alpha, Beta, (MoveL, MoveC), BestMove).
+cutoff(Move,Value,Player,Board,OriginalBoard,D,Alpha,Beta,Moves,Record,Best) :-
+    Alpha < Value,Value < Beta,!,
+    alphaBetaChoose(Moves,Player,Board,OriginalBoard,D,Value,Beta,Move,Best).
     
-cutoff(_, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
-    Value =< Alpha,
-    evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Alpha, Beta, Move1, BestMove).
+cutoff(Move,Value,Player,Board,OriginalBoard,D,Alpha,Beta,Moves,Record,Best) :-
+    Value =< Alpha,!,
+    alphaBetaChoose(Moves,Player,Board,OriginalBoard,D,Alpha,Beta,Record,Best).
 
 
 update(Move,Value,_,(Move,Value),_,0) :- !.
-
-update((MoveL,MoveC),Value,((Move1L,Move1C),Value1),((MoveL,MoveC),Value),1,_) :- Value =:= Value1, (MoveL > Move1L;(MoveL =:= Move1L, MoveC > Move1C)).
 update(_,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =:= Value1.
 
 update(_,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =< Value1.

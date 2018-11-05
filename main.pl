@@ -128,13 +128,13 @@ chooseMoveAI(Board,Player,Move,3) :- allMoves(Board,Player,Moves),
                                      depth(Depth),
                                      Counter is 0,
                                      MaxMin is 1,
-                                     evaluateAndChoose(Moves,Player,Board,Board,Counter,Depth,MaxMin,(nil,-1000),(Move,_)).
+                                     minimaxChoose(Moves,Player,Board,Board,Counter,Depth,MaxMin,(nil,-1000),(Move,_)).
 chooseMoveAI(Board,Player,Move,4) :- allMoves(Board,Player,Moves),
                                      depth(Depth),
                                      Counter is 0,
                                      Alpha is -10000,
                                      Beta is 10000,
-                                     evaluateAndChoose(Moves,Player,Board,Board,Counter,Depth,Alpha,Beta,nil,(Move,_)).
+                                     alphaBetaChoose(Moves,Player,Board,Board,Depth,Alpha,Beta,nil,(Move,_)).
 %% -- Apply move --
 applyMove((X,Y),Player,Board,NewBoard) :- replace(Board,ModifBoard,1,X,Y,Player),
                                           transformBoard((X,Y),Player,ModifBoard,NewBoard).
