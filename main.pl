@@ -124,6 +124,7 @@ moveIsLegal(Move,[_|RestOfMoves]):- moveIsLegal(Move,RestOfMoves).
 chooseMoveAI(Board,Player,Move) :- heuristic(Player,Heuristic), chooseMoveAI(Board,Player,Move,Heuristic), !.
 chooseMoveAI(Board,Player,Move,0) :- allMoves(Board,Player,Moves),nth1(1,Moves,Move).
 chooseMoveAI(Board,Player,Move,1) :- allMoves(Board,Player,Moves),randomChoose(Moves,Move).
+chooseMoveAI(Board,Player,Move,2) :- allMoves(Board,Player,Moves),simpleChoose(Moves,Player,Board,Move).
 chooseMoveAI(Board,Player,Move,3) :- allMoves(Board,Player,Moves),
                                      depth(Depth),
                                      Counter is 0,

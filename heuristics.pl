@@ -1,10 +1,18 @@
-%% --- Random IA ---
+%% --- Random AI ---
 randomChoose([], []).
 randomChoose(List, Elt) :-
     length(List, Length),
     random(0, Length, Index),
     nth0(Index, List, Elt).
 
+%% --- Simple AI ---
+simpleChoose(Moves,Player,Board,Move) :- simpleChoose(Moves,Player,Board,nil,-10000,Move).
+
+simpleChoose([],Player,Board,Best,Value,Best).
+simpleChoose([Move|Moves],Player,Board,Actual,Value,Best) :-
+                                applyMove(Move,Player,Board,NewBoard),
+                                countTotalDisk(NewBoard,Player,N),
+                                (N > Value -> simpleChoose(Moves,Player,Board,Move,N,Best) ; simpleChoose(Moves,Player,Board,Actual,Value,Best)).
 
 %% --- MinMax heuristic ---
 minimaxChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,Record,Best) :-
