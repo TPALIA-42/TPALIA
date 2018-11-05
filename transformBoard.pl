@@ -1,12 +1,3 @@
-
-
-%countList([X|L],NbNow,NList) :- nonvar(X),!,NewNb is NbNow+1,countList(L,NewNb,NList).
-%countList([_|L],NbNow,NList) :- countList(L,NbNow,NList).
-%countList([],V,V).
-
-
-
-
 transformBoard((IndexL,IndexC),Player,Board,NewBoard) :- bagof((DL,DC),direction(DL,DC),Directions), transformBoard((IndexL,IndexC),Directions,Player,Board,NewBoard).
 
 transformBoard(_,[],_,Board,Board) :- !.
