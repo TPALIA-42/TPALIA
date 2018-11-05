@@ -24,4 +24,4 @@ move(Board,(IndexL,IndexC),Player,(DirectionL,DirectionC),Counter,Move) :- NewIn
                                                                            move(Board,(NewIndexL,NewIndexC),Player,(DirectionL,DirectionC),Counter+1,Move).
 
 allMoves(Board,Player,Moves) :- setof(M,move(Board,Player,M),Moves).
-allMoves(Board,Player,[]).
+allMoves(_,_,[]).

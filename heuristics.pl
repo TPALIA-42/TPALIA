@@ -9,7 +9,7 @@ randomChoose(List, Elt) :-
 %% --- MinMax heuristic ---
 evaluateAndChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,Record,Best) :-
                                 applyMove(Move,Player,Board,NewBoard),
-                                minimax(Depth,Player,NewBoard,OriginalBoard,MaxMin,MoveX,Value),
+                                minimax(Depth,Player,NewBoard,OriginalBoard,MaxMin,_,Value),
                                 update(Move,Value,Record,NewRecord,MaxMin,Counter),
                                 NewCounter is Counter+1,
                                 evaluateAndChoose(Moves,Player,Board,OriginalBoard,NewCounter,Depth,MaxMin,NewRecord,Best).
@@ -30,7 +30,7 @@ minimax(_,Player,Board,OriginalBoard,MaxMin,nil,Value) :- value(Player,Board,Ori
 evaluateAndChoose([Move|Moves], Player, Board, OriginalBoard, Counter, Depth, Alpha, Beta, Move1, BestMove) :-
     applyMove(Move, Player, Board, NewBoard),
     NewPlayer is 1 - Player,
-    alphaBeta(Depth, NewPlayer, NewBoard, OriginalBoard, Alpha, Beta, MoveX, Value),
+    alphaBeta(Depth, NewPlayer, NewBoard, OriginalBoard, Alpha, Beta, _, Value),
     NewValue is -Value,
     NewCounter is Counter + 1,
     cutoff(Move, NewValue, NewCounter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove).
@@ -46,13 +46,13 @@ alphaBeta(Depth, Player, Board, OriginalBoard, Alpha, Beta, Move, Value):-
     !,
     evaluateAndChoose(Moves, Player, Board, OriginalBoard, 0, NewDepth, Alpha1, Beta1, nil, (Move, Value)).
 
-alphaBeta(_, Player, Board, OriginalBoard, Alpha, Beta, Move, Value):-
+alphaBeta(_, Player, Board, OriginalBoard, _, _, _, Value):-
     value(Player, Board, OriginalBoard, 0, Value), !.
 
-cutoff(Move, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, (Move, Value)):-
+cutoff(Move, Value, _, _, _, Beta, _, _, _, _, _, (Move, Value)):-
     Value >= Beta.
 
-cutoff(Move, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
+cutoff(Move, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, _, BestMove):-
     Alpha < Value, Value < Beta,
     evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Value, Beta, Move, BestMove).
 
@@ -60,7 +60,7 @@ cutoff((MoveL,MoveC), Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoar
     Value =:= Alpha, nonvar(Move1L), nonvar(Move1C), (MoveL > Move1L;(MoveL =:= Move1L, MoveC > Move1C)),
     evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Alpha, Beta, (MoveL, MoveC), BestMove).
     
-cutoff(Move, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
+cutoff(_, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, OriginalBoard, Move1, BestMove):-
     Value =< Alpha,
     evaluateAndChoose(Moves, Player, NewBoard, OriginalBoard, Counter, Depth, Alpha, Beta, Move1, BestMove).
 
@@ -68,12 +68,12 @@ cutoff(Move, Value, Counter, Depth, Alpha, Beta, Moves, Player, NewBoard, Origin
 update(Move,Value,_,(Move,Value),_,0) :- !.
 
 update((MoveL,MoveC),Value,((Move1L,Move1C),Value1),((MoveL,MoveC),Value),1,_) :- Value =:= Value1, (MoveL > Move1L;(MoveL =:= Move1L, MoveC > Move1C)).
-update(Move,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =:= Value1.
+update(_,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =:= Value1.
 
-update(Move,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =< Value1.
-update(Move,Value,(Move1,Value1),(Move,Value),1,_) :- Value > Value1.
-update(Move,Value,(Move1,Value1),(Move,Value),-1,_) :- Value < Value1.
-update(Move,Value,(Move1,Value1),(Move1,Value1),-1,_) :- Value >= Value1.
+update(_,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =< Value1.
+update(Move,Value,(_,Value1),(Move,Value),1,_) :- Value > Value1.
+update(Move,Value,(_,Value1),(Move,Value),-1,_) :- Value < Value1.
+update(_,Value,(Move1,Value1),(Move1,Value1),-1,_) :- Value >= Value1.
 
 value(Player,[X|L],[OX|OL],VStart,V) :- compare(Player,X,OX,0,N),NewStart is N+VStart,value(Player,L,OL,NewStart,V).
 value(_,[],[],V,V).
