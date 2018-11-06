@@ -54,6 +54,9 @@ alphaBeta(D,Player,Board,OriginalBoard,Alpha,Beta,Move,Value) :- D > 0,
                                                     !,
                                                     alphaBetaChoose(Moves,NewPlayer,Board,OriginalBoard,D1,Alpha1,Beta1,nil,(Move,Value1)),
                                                     Value is -1*Value1.
+
+alphaBeta(D,Player,OriginalPlayer,_,_,_,Beta,_,Value) :- Player =:= OriginalPlayer,Value is Beta-0.5,!.
+alphaBeta(D,Player,OriginalPlayer,_,_,_,Beta,_,Value) :- Player =:= 1-OriginalPlayer,Value is Beta+1,!.
                                                     
 cutoff(Move,Value,_,_,_,_,_,Beta,_,_,(Move,Value)) :-
     Value >= Beta,!.
