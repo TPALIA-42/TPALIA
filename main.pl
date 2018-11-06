@@ -95,7 +95,7 @@ askForHeuristic(Player,HeuristicNumber) :-
 
 
 %% -- Display information at the game launching: nature of players and their heuristics.
-displayPlayerInfo() :- no_output(1), !.
+displayPlayersInfo() :- no_output(1), !.
 
 displayPlayersInfo() :-
     (isHuman(0) -> write('Le joueur 0 est humain.'), nl, assert(isHuman(0)) ; heuristic(0,Heuristic0), displayIAInfo(0, Heuristic0)),
