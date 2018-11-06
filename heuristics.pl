@@ -1,3 +1,7 @@
+%% --- Naive AI ---
+naiveAI(Moves,Move) :-
+    nth1(1,Moves,Move).
+
 %% --- Random AI ---
 randomChoose([], []).
 randomChoose(List, Elt) :-
@@ -100,4 +104,3 @@ compare(Player,[E|L],[OE|OL],TempN,N) :- nonvar(E),var(OE),E =:= Player,NewN is 
 compare(Player,[E|L],[OE|OL],TempN,N) :- nonvar(E),var(OE),E =:= 1-Player,NewN is TempN-1,compare(Player,L,OL,NewN,N).
 compare(_,[],[],N,N) :- !.
 
-%% --- Corner heuristic ---

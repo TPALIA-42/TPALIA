@@ -18,7 +18,7 @@ init(GameHeight,1,Heuristic1) :- init(GameHeight,1,0,Heuristic1).
 init(GameHeight,2) :- init(GameHeight,2,0,0).
 
 %% -- Real initialization of game: import files, prepare board and launch game
-%% init/4 : +GameHeight, +HumanPlayersNumber, +Heuristic0, +Heuristic1
+%% > init/4 : +GameHeight, +HumanPlayersNumber, +Heuristic0, +Heuristic1
 init(GameHeight,HumanPlayersNumber,Heuristic0,Heuristic1) :- 
     GameHeight mod 2 =:= 0,
     [board],
@@ -122,12 +122,13 @@ play(Player,Result) :- board(Board), play(Board,Player,Result).
 
 %% - Real play procedure : check if enable, display board and advance to next opponent turn
 %% play/3 : +Board, +Player, -Result
-play(Board,Player,Result) :- canPlay(Board,Player),
-                             displayGame(Board,Player),
-                             chooseMove(Board,Player,Move),
-                             applyMove(Move,Player,Board,NewBoard),
-                             nextPlayer(Player,NextPlayer),
-                             !,play(NewBoard,NextPlayer,Result).
+play(Board,Player,Result) :- 
+    canPlay(Board,Player),
+    displayGame(Board,Player),
+    chooseMove(Board,Player,Move),
+    applyMove(Move,Player,Board,NewBoard),
+    nextPlayer(Player,NextPlayer),
+    !,play(NewBoard,NextPlayer,Result).
 
 %% - End cases: error during game or game ended -
 play(Board,Player,_) :- canPlay(Board,Player),writeln("Bug durant le déroulement d'un tour"),!,fail.
@@ -137,31 +138,12 @@ play(Board,_,Result) :- displayFinalGame(Board),winner(Board,Result),!,announce(
 %% canPlay/2 : +Board, +Player
 canPlay(Board,Player) :- move(Board,Player,_),!.
 
-%% -- Display game board --
-displayGame(_,_) :- no_output(1), !.
-displayGame(L,Player) :-  maxL(GameHeight),write('*----------- Tour de '),write(Player),writeln(' ----------*'),nl,displayIndex(1,GameHeight),nl,!,displayBoard(L,Player,1).
-displayBoard([X|L],Player,IndexL) :- write(IndexL),write(' | '),displayLine(X),nl,NewIndexL is IndexL + 1,displayBoard(L,Player,NewIndexL).
-displayBoard([],_,_) :- writeln('*-------------------------------*'),nl,!.
-
-displayFinalGame(_) :- no_output(1), !.
-displayFinalGame(L) :- maxL(GameHeight),writeln('*--------- Plateau final --------*'),nl,displayIndex(1,GameHeight),nl,!,displayBoard(L,-1,1).
-
-displayLine([]).
-displayLine([X|L]) :- var(X),write('_   '),!,displayLine(L).
-displayLine([X|L]) :- write(X),write('   '),!,displayLine(L).
-
-displayIndex(GameHeight,GameHeight) :- write('  '),write(GameHeight),nl,write('----------------------------------'), !.
-displayIndex(1,GameHeight) :- write('  | 1 '),displayIndex(2,GameHeight).
-displayIndex(N,GameHeight) :- write('  '),write(N),write(' '),N1 is N+1,displayIndex(N1,GameHeight).
-
-%% -- Choose move --
-
-%% Decide wheter it is a human or an AI move
-%% chooseMove/2 : +Board, +Player, -Move
+%% -- Choose move: decide wheter it is a human or an AI move --
+%% > chooseMove/2 : +Board, +Player, -Move
 chooseMove(Board,Player,Move) :- (isHuman(Player) -> chooseMoveHuman(Board,Player,Move); chooseMoveAI(Board,Player,Move)).
 
 %% - Human move: must check if enable
-%% chooseMoveHuman/3 :  +Board, +Player, -Move
+%% > chooseMoveHuman/3 :  +Board, +Player, -Move
 chooseMoveHuman(Board,Player,Move) :- 
     allMoves(Board,Player,Moves),
     write('Liste des coups disponibles : '),write(Moves),nl,
@@ -169,35 +151,35 @@ chooseMoveHuman(Board,Player,Move) :-
     askForMove(Move,Moves),
     write('Vous avez choisi le coup ['),write(Move),write(']'),nl.
 
-%% askForMove/2 : +Move, +Moves
+%% > askForMove/2 : +Move, +Moves
 askForMove((MoveL,MoveC),Moves) :-
     write('L : '),read(InputL),nl,
     write('C : '),read(InputC),nl,
     (moveIsLegal((InputL,InputC),Moves) -> MoveL is InputL, MoveC is InputC;
     write('Coup non valide, veuillez réiterer la saisie.'),nl,askForMove((MoveL,MoveC),Moves)).
 
-%% moveIsLegal/2 : +Move, -Moves
+%% > moveIsLegal/2 : +Move, -Moves
 moveIsLegal(Move,[Move|_]).
 moveIsLegal(Move,[_|RestOfMoves]):- moveIsLegal(Move,RestOfMoves).
 
 %% - AI move: play according to heuristics -
-%% chooseMoveAI/3 : +Board, +Player, -Move
-%% chooseMoveAI/4 : +Board, +Player, -Move, 0-4
+%% > chooseMoveAI/3 : +Board, +Player, -Move
+%% > chooseMoveAI/4 : +Board, +Player, -Move, 0-4
 chooseMoveAI(Board,Player,Move) :- heuristic(Player,Heuristic), chooseMoveAI(Board,Player,Move,Heuristic), !.
-chooseMoveAI(Board,Player,Move,0) :- allMoves(Board,Player,Moves),nth1(1,Moves,Move).
+chooseMoveAI(Board,Player,Move,0) :- allMoves(Board,Player,Moves),naiveAI(Moves,Move).
 chooseMoveAI(Board,Player,Move,1) :- allMoves(Board,Player,Moves),randomChoose(Moves,Move).
 chooseMoveAI(Board,Player,Move,2) :- allMoves(Board,Player,Moves),simpleChoose(Moves,Player,Board,Move).
 chooseMoveAI(Board,Player,Move,3) :- allMoves(Board,Player,Moves),depth(Depth),minimaxChoose(Moves,Player,Board,Depth,Move).
 chooseMoveAI(Board,Player,Move,4) :- allMoves(Board,Player,Moves),depth(Depth),alphaBetaChoose(Moves,Player,Board,Depth,Move).
 
 %% -- Apply move --
-%% applyMove/4 : +Move, +Player, +Board, -NewBoard
+%% > applyMove/4 : +Move, +Player, +Board, -NewBoard
 applyMove((X,Y),Player,Board,NewBoard) :- 
     replace(Board,ModifBoard,1,X,Y,Player),
     transformBoard((X,Y),Player,ModifBoard,NewBoard).
 
 %% -- Next player --
-%% nextPlayer/2: +Actual, -Next
+%% > nextPlayer/2: +Actual, -Next
 nextPlayer(Actual,Next) :- Next is 1-Actual.
 
 
