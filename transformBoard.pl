@@ -1,21 +1,43 @@
-transformBoard((IndexL,IndexC),Player,Board,NewBoard) :- bagof((DL,DC),direction(DL,DC),Directions), transformBoard((IndexL,IndexC),Directions,Player,Board,NewBoard).
+%% --- All board transformations ---
+
+%% -- Get new board after move --
+transformBoard((IndexL,IndexC),Player,Board,NewBoard) :- 
+    bagof((DL,DC),direction(DL,DC),Directions),
+    transformBoard((IndexL,IndexC),Directions,Player,Board,NewBoard).
 
 transformBoard(_,[],_,Board,Board) :- !.
-transformBoard((IndexL,IndexC),[D|Remaining],Player,Board,NewBoard) :- transform((IndexL,IndexC),D,Player,[],Board,BoardInter),
-                                                                       transformBoard((IndexL,IndexC),Remaining,Player,BoardInter,NewBoard).
+transformBoard((IndexL,IndexC),[D|Remaining],Player,Board,NewBoard) :- 
+    transform((IndexL,IndexC),D,Player,[],Board,BoardInter),
+    transformBoard((IndexL,IndexC),Remaining,Player,BoardInter,NewBoard).
 
+%% -- Change disks color after move --
 changeList(B,B,[],_).
-changeList(Board,NewBoard,[(IndexL,IndexC)|L],Player) :- replace(Board,ModifBoard,1,IndexL,IndexC,Player),changeList(ModifBoard,NewBoard,L,Player).
+changeList(Board,NewBoard,[(IndexL,IndexC)|L],Player) :-
+    replace(Board,ModifBoard,1,IndexL,IndexC,Player),
+    changeList(ModifBoard,NewBoard,L,Player).
 
-replace([X|L1],[X|L2],Pos,IndexL,IndexC,Player) :- Pos =\= IndexL,!,NewPos is Pos+1,replace(L1,L2,NewPos,IndexL,IndexC,Player).
-replace([X|L1],[Y|L2],Pos,IndexL,IndexC,Player) :- replaceDisk(X,Y,1,IndexC,Player),
-NewPos is Pos+1,replace(L1,L2,NewPos,IndexL,IndexC,Player).
-replace([],[],_,_,_,_).
+replace([X|L1],[X|L2],Pos,IndexL,IndexC,Player) :- 
+    Pos =\= IndexL,!,
+    NewPos is Pos+1,
+    replace(L1,L2,NewPos,IndexL,IndexC,Player).
 
-replaceDisk([D|L1],[D|L2],Pos,IndexC,Player) :- Pos =\= IndexC,!,NewPos is Pos+1,replaceDisk(L1,L2,NewPos,IndexC,Player).
-replaceDisk([_|L1],[Player|L2],Pos,IndexC,Player) :- NewPos is Pos+1,replaceDisk(L1,L2,NewPos,IndexC,Player).
+replace([X|L1],[Y|L2],Pos,IndexL,IndexC,Player) :-
+    replaceDisk(X,Y,1,IndexC,Player),
+    NewPos is Pos+1,replace(L1,L2,NewPos,IndexL,IndexC,Player).
+    replace([],[],_,_,_,_).
+
+replaceDisk([D|L1],[D|L2],Pos,IndexC,Player) :-
+    Pos =\= IndexC,!,
+    NewPos is Pos+1,
+    replaceDisk(L1,L2,NewPos,IndexC,Player).
+
+replaceDisk([_|L1],[Player|L2],Pos,IndexC,Player) :-
+    NewPos is Pos+1,
+    replaceDisk(L1,L2,NewPos,IndexC,Player).
+
 replaceDisk([],[],_,_,_).
 
+%% -- Add played disk on the board --
 transform((IndexL,IndexC),(DirectionL,DirectionC),_,_,Board,Board) :- NewIndexL is (IndexL+DirectionL),
                                     NewIndexC is (IndexC+DirectionC),
                                     (not(insideBoard(NewIndexL,NewIndexC));
