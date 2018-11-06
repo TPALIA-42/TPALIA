@@ -61,7 +61,7 @@ init(GameHeight,NbOfPlayers,Heuristic0,Heuristic1) :-
                                                       putInitialsDisks(GameHeight, Mat),
                                                       assert(board(Mat)),
                                                       
-                                                      displayPlayerInfo().
+                                                      displayPlayersInfo().
 
 %% -- Set initial game board with the regular 4 disks --
 putInitialsDisks(GameHeight, Mat):-
@@ -77,9 +77,17 @@ putInitialsDisks(GameHeight, Mat):-
 
 displayPlayerInfo() :- no_output(1), !.
 
-displayPlayerInfo() :-
-    (isHuman(0) -> write('Le joueur 0 est humain.'), nl, assert(isHuman(0)) ; heuristic(0,Heuristic0), write('Le joueur 0 est une IA avec l\'heuristique '),write(Heuristic0),write('.'),nl),
-    (isHuman(1) -> write('Le joueur 1 est humain.'), nl, assert(isHuman(1)) ; heuristic(1,Heuristic1), write('Le joueur 1 est une IA avec l\'heuristique '),write(Heuristic1),write('.'),nl).
+displayPlayersInfo() :-
+    (isHuman(0) -> write('Le joueur 0 est humain.'), nl, assert(isHuman(0)) ; heuristic(0,Heuristic0), displayIAInfo(0, Heuristic0)),
+    (isHuman(1) -> write('Le joueur 1 est humain.'), nl, assert(isHuman(1)) ; heuristic(1,Heuristic1), displayIAInfo(1, Heuristic1)).
+
+displayIAInfo(PlayerNumber,HeuristicNumber) :-
+    write('Le joueur '), write(PlayerNumber), write(' est une IA avec l\'heuristique '),
+    (HeuristicNumber is 0) -> write('naïve'), write('.'),nl;
+    (HeuristicNumber is 1) -> write('aléatoire'), write('.'),nl;
+    (HeuristicNumber is 2) -> write('basique'), write('.'),nl;
+    (HeuristicNumber is 3) -> write('minimax'), write('.'),nl;
+    (HeuristicNumber is 4) -> write('minimax avec élaguage alpha-béta'), write('.'),nl.
 
 %% -- Play the game : stop when a human must play --
 play() :- board(Board), play(Board,0,_).
