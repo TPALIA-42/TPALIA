@@ -1,7 +1,7 @@
 run :-
     [main],
     assert(no_output(1)),
-    runTournament(4).
+    runTournament(5).
 
 runTournament(MaxH) :- runTournament(0,0,MaxH).
 runTournament(H0,0,MaxH) :- H0 =:= MaxH+1.

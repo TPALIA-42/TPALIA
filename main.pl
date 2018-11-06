@@ -43,6 +43,7 @@ init(GameHeight,HumanPlayersNumber,Heuristic0,Heuristic1) :-
     assert(heuristic(0,Heuristic0)),
     assert(heuristic(1,Heuristic1)),
     assert(depth(3)),
+    assert(depth2(4)),
     assert(no_output(0)),
 
     putInitialsDisks(GameHeight, Mat),
@@ -88,9 +89,10 @@ askForHeuristic(Player,HeuristicNumber) :-
     writeln('- 2. Basique'),
     writeln('- 3. Minimax'),
     writeln('- 4. Minimax avec élagage alpha-beta'),
+    writeln('- 5. Minimax avec élagage alpha-beta profondeur accrue'),
     write('Quelle heuristique voulez-vous choisir pour le joueur '),write(Player),writeln(' :'),
     read(Input),nl,
-    ((Input =< 4, Input >= 0) ->  HeuristicNumber is Input;
+    ((Input =< 5, Input >= 0) ->  HeuristicNumber is Input;
     write('Nombre invalide, veuillez le resaisir.'),askForHeuristic(HeuristicNumber)).
 
 
@@ -107,4 +109,5 @@ displayIAInfo(PlayerNumber,HeuristicNumber) :-
     (HeuristicNumber is 1) -> write('aléatoire.'), nl;
     (HeuristicNumber is 2) -> write('basique.'), nl;
     (HeuristicNumber is 3) -> write('minimax.'), nl;
-    (HeuristicNumber is 4) -> write('minimax avec élaguage alpha-béta'),nl.
+    (HeuristicNumber is 4) -> write('minimax avec élaguage alpha-béta'),nl;
+    (HeuristicNumber is 5) -> write('minimax avec élaguage alpha-béta profondeur accrue'),nl.
