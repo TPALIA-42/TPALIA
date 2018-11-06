@@ -126,18 +126,8 @@ chooseMoveAI(Board,Player,Move) :- heuristic(Player,Heuristic), chooseMoveAI(Boa
 chooseMoveAI(Board,Player,Move,0) :- allMoves(Board,Player,Moves),nth1(1,Moves,Move).
 chooseMoveAI(Board,Player,Move,1) :- allMoves(Board,Player,Moves),randomChoose(Moves,Move).
 chooseMoveAI(Board,Player,Move,2) :- allMoves(Board,Player,Moves),simpleChoose(Moves,Player,Board,Move).
-chooseMoveAI(Board,Player,Move,3) :- allMoves(Board,Player,Moves),
-                                     depth(Depth),
-                                     Counter is 0,
-                                     MaxMin is 1,
-                                     minimaxChoose(Moves,Player,Board,Board,Counter,Depth,MaxMin,(nil,-10000),(Move,_)).
-chooseMoveAI(Board,Player,Move,4) :- allMoves(Board,Player,Moves),
-                                     depth(Depth),
-                                     Counter is 0,
-                                     Alpha is -10000,
-                                     Beta is 10000,
-                                     nth1(1,Moves,FirstMove),
-                                     alphaBetaChoose(Moves,Player,Board,Board,Depth,Alpha,Beta,FirstMove,(Move,_)).
+chooseMoveAI(Board,Player,Move,3) :- allMoves(Board,Player,Moves),depth(Depth),minimaxChoose(Moves,Player,Board,Depth,Move).
+chooseMoveAI(Board,Player,Move,4) :- allMoves(Board,Player,Moves),depth(Depth),alphaBetaChoose(Moves,Player,Board,Depth,Move).
 
 %% -- Apply move --
 applyMove((X,Y),Player,Board,NewBoard) :- replace(Board,ModifBoard,1,X,Y,Player),

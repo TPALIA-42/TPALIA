@@ -15,6 +15,10 @@ simpleChoose([Move|Moves],Player,Board,Actual,Value,Best) :-
                                 (N > Value -> simpleChoose(Moves,Player,Board,Move,N,Best) ; simpleChoose(Moves,Player,Board,Actual,Value,Best)).
 
 %% --- MinMax heuristic ---
+minimaxChoose(Moves,Player,Board,Depth,Move) :-
+                                Counter is 0,
+                                MaxMin is 1,
+                                minimaxChoose(Moves,Player,Board,Board,Counter,Depth,MaxMin,(nil,-10000),(Move,_)).
 minimaxChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,Record,Best) :-
                                 applyMove(Move,Player,Board,NewBoard),
                                 minimax(Depth,Player,NewBoard,OriginalBoard,MaxMin,_,Value),
@@ -40,6 +44,13 @@ minimax(D,Player,Board,_,MaxMin,nil,Value) :-
 
 
 %% ---AlphaBeta heuristic ---
+alphaBetaChoose(Moves,Player,Board,Depth,Move) :-
+                                Counter is 0,
+                                Alpha is -10000,
+                                Beta is 10000,
+                                nth1(1,Moves,FirstMove),
+                                alphaBetaChoose(Moves,Player,Board,Board,Depth,Alpha,Beta,FirstMove,(Move,_)).
+
 alphaBetaChoose([Move|Moves],Player,Board,OriginalBoard,Depth,Alpha,Beta,Record,Best) :-
                                                                     applyMove(Move,Player,Board,NewBoard),
                                                                     alphaBeta(Depth,Player,NewBoard,OriginalBoard,Alpha,Beta,MoveX,Value),
