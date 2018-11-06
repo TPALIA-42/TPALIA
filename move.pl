@@ -1,3 +1,6 @@
+%% --- Get available moves ---
+
+%% -- Directions to check when placing a new disk --
 direction(-1,0).
 direction(1,0).
 direction(0,-1).
@@ -7,8 +10,11 @@ direction(1,1).
 direction(-1,1).
 direction(1,-1).
 
+%% -- Check if place is empty --
 move(Board,Player,Move) :- diskAt(Board,IndexL,IndexC,Disk),nonvar(Disk),Disk=:=Player,direction(DL,DC),move(Board,(IndexL,IndexC),Player,(DL,DC),0,Move).
 
+%% -- Check is move is legal --
+%% > move/6 : +Board, +Move, +Player, +SameDirections, +Counter, -Moves
 move(Board,(IndexL,IndexC),_,(DirectionL,DirectionC),Counter,(MoveL,MoveC)) :- Counter > 0,
                                                                                MoveL is (IndexL+DirectionL),
                                                                                MoveC is (IndexC+DirectionC),
@@ -23,5 +29,7 @@ move(Board,(IndexL,IndexC),Player,(DirectionL,DirectionC),Counter,Move) :- NewIn
                                                                            Disk=:=1-Player,
                                                                            move(Board,(NewIndexL,NewIndexC),Player,(DirectionL,DirectionC),Counter+1,Move).
 
+%% -- List of all moves --
+%% > allMoves/3 : +Board, +Player, -Moves
 allMoves(Board,Player,Moves) :- setof(M,move(Board,Player,M),Moves).
 allMoves(_,_,[]).
