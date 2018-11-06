@@ -55,7 +55,7 @@ init(GameHeight,NbOfPlayers,Heuristic0,Heuristic1) :-
                                                       makeMatrix(GameHeight,Mat),
                                                       assert(heuristic(0,Heuristic0)),
                                                       assert(heuristic(1,Heuristic1)),
-                                                      assert(depth(2)),
+                                                      assert(depth(3)),
                                                     
                                                       putInitialsDisks(GameHeight, Mat),
                                                       assert(board(Mat)).

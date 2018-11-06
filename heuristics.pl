@@ -32,8 +32,8 @@ minimax(D,Player,Board,OriginalBoard,MaxMin,Move,Value) :- D > 0,
                                 setof(M,move(Board,NewPlayer,M),Moves),
                                 !,
                                 minimaxChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-1000),(Move,Value)).
-%minimax(D,_,_,_,MaxMin,nil,Value) :- MaxMin =:= 1,Value is 1000*D,!.
-%minimax(D,_,_,_,MaxMin,nil,Value) :- MaxMin =:= -1,Value is -1000*D,!.
+minimax(D,_,_,_,MaxMin,nil,Value) :- MaxMin =:= 1,Value is 1000*D,!.
+minimax(D,_,_,_,MaxMin,nil,Value) :- MaxMin =:= -1,Value is -1000*D,!.
 
 
 %% ---AlphaBeta heuristic ---
