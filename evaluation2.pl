@@ -6,8 +6,8 @@ run :-
 runTournament(MaxH) :- runTournament(0,0,MaxH).
 runTournament(H0,0,MaxH) :- H0 =:= MaxH+1.
 runTournament(H0,H1,MaxH) :-
-    runMatch(H0,H1),get_code(_),
-    (H1 + 1 < MaxH -> NewH0 is H0, NewH1 is H1+1 ; NewH0 is H0 + 1, NewH1 is 0),
+    runMatch(H0,H1),
+    (H1 < MaxH -> NewH0 is H0, NewH1 is H1+1 ; NewH0 is H0 + 1, NewH1 is 0),
     runTournament(NewH0,NewH1,MaxH).
     
 runMatch(H0,H1) :- runMatch(H0,H1,S0,S1),
@@ -15,7 +15,7 @@ runMatch(H0,H1) :- runMatch(H0,H1,S0,S1),
                    write(' : '),
                    write(S0),write(' / '),writeln(S1).
                          
-runMatch(H0,H1,S0,S1) :- runMatch(H0,H1,3,0,0,S0,S1).
+runMatch(H0,H1,S0,S1) :- runMatch(H0,H1,10,0,0,S0,S1).
 
 runMatch(_,_,0,Score0,Score1,Score0,Score1).
 runMatch(H0,H1,Count,Temp0,Temp1,Score0,Score1) :-
