@@ -42,6 +42,11 @@ minimax(D,Player,Board,_,MaxMin,nil,Value) :-
     countTotalDisk(Board,Opponent,NO),
     (N > NO -> Value is MaxMin*1000 ; Value is -MaxMin*1000),!.
 
+update(Move,Value,_,(Move,Value),_,0) :- !.
+update(_,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =< Value1.
+update(Move,Value,(_,Value1),(Move,Value),1,_) :- Value > Value1.
+update(Move,Value,(_,Value1),(Move,Value),-1,_) :- Value < Value1.
+update(_,Value,(Move1,Value1),(Move1,Value1),-1,_) :- Value >= Value1.
 
 %% ---AlphaBeta heuristic ---
 alphaBetaChoose(Moves,Player,Board,Depth,Move) :-
@@ -86,13 +91,6 @@ cutoff(_,Value,Player,Board,OriginalBoard,D,Alpha,Beta,Moves,Record,Best) :-
     Value =< Alpha,!,
     alphaBetaChoose(Moves,Player,Board,OriginalBoard,D,Alpha,Beta,Record,Best).
 
-
-update(Move,Value,_,(Move,Value),_,0) :- !.
-update(_,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =< Value1.
-update(Move,Value,(_,Value1),(Move,Value),1,_) :- Value > Value1.
-update(Move,Value,(_,Value1),(Move,Value),-1,_) :- Value < Value1.
-update(_,Value,(Move1,Value1),(Move1,Value1),-1,_) :- Value >= Value1.
-
 value(Player,[X|L],[OX|OL],VStart,V) :- compare(Player,X,OX,0,N),NewStart is N+VStart,value(Player,L,OL,NewStart,V).
 value(_,[],[],V,V).
 compare(Player,[E|L],[OE|OL],TempN,N) :- nonvar(E),nonvar(OE),E =:= Player,OE =:= 1-Player,NewN is TempN+1,compare(Player,L,OL,NewN,N).
@@ -102,3 +100,5 @@ compare(Player,[E|L],[OE|OL],TempN,N) :- var(E),var(OE),compare(Player,L,OL,Temp
 compare(Player,[E|L],[OE|OL],TempN,N) :- nonvar(E),var(OE),E =:= Player,NewN is TempN+1,compare(Player,L,OL,NewN,N).
 compare(Player,[E|L],[OE|OL],TempN,N) :- nonvar(E),var(OE),E =:= 1-Player,NewN is TempN-1,compare(Player,L,OL,NewN,N).
 compare(_,[],[],N,N) :- !.
+
+%% --- Corner heuristic ---
