@@ -8,7 +8,7 @@ randomChoose(List, Elt) :-
 %% --- Simple AI ---
 simpleChoose(Moves,Player,Board,Move) :- simpleChoose(Moves,Player,Board,nil,-10000,Move).
 
-simpleChoose([],Player,Board,Best,Value,Best).
+simpleChoose([],_,_,Best,_,Best).
 simpleChoose([Move|Moves],Player,Board,Actual,Value,Best) :-
                                 applyMove(Move,Player,Board,NewBoard),
                                 countTotalDisk(NewBoard,Player,N),
@@ -36,7 +36,7 @@ minimax(D,Player,Board,OriginalBoard,MaxMin,Move,Value) :- D > 0,
                                 setof(M,move(Board,NewPlayer,M),Moves),
                                 !,
                                 minimaxChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-10000),(Move,Value)).
-minimax(D,Player,Board,_,MaxMin,nil,Value) :-
+minimax(_,Player,Board,_,MaxMin,nil,Value) :-
     countTotalDisk(Board,Player,N),
     Opponent is 1-Player,
     countTotalDisk(Board,Opponent,NO),
@@ -50,7 +50,6 @@ update(_,Value,(Move1,Value1),(Move1,Value1),-1,_) :- Value >= Value1.
 
 %% ---AlphaBeta heuristic ---
 alphaBetaChoose(Moves,Player,Board,Depth,Move) :-
-                                Counter is 0,
                                 Alpha is -10000,
                                 Beta is 10000,
                                 nth1(1,Moves,FirstMove),
@@ -58,7 +57,7 @@ alphaBetaChoose(Moves,Player,Board,Depth,Move) :-
 
 alphaBetaChoose([Move|Moves],Player,Board,OriginalBoard,Depth,Alpha,Beta,Record,Best) :-
                                                                     applyMove(Move,Player,Board,NewBoard),
-                                                                    alphaBeta(Depth,Player,NewBoard,OriginalBoard,Alpha,Beta,MoveX,Value),
+                                                                    alphaBeta(Depth,Player,NewBoard,OriginalBoard,Alpha,Beta,_,Value),
                                                                     cutoff(Move,Value,Player,Board,OriginalBoard,Depth,Alpha,Beta,Moves,Record,Best).
 alphaBetaChoose([],_,_,_,_,Alpha,_,Record,(Record,Alpha)) :- !.
 

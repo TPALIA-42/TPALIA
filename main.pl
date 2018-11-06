@@ -28,6 +28,7 @@ askForHeuristic(Player,Heuristic) :- writeln('Liste des heuristiques :'),
                                      read(Input),nl,
                                      ((Input =< 4, Input >= 0) ->  Heuristic is Input;
                                      write('Nombre invalide, veuillez le resaisir.'),askForHeuristic(Heuristic)).
+
 %% -- Set initial game --
 init(GameHeight,1,Heuristic1) :- init(GameHeight,1,0,Heuristic1).
 init(GameHeight,2) :- init(GameHeight,2,0,0).
@@ -47,18 +48,20 @@ init(GameHeight,NbOfPlayers,Heuristic0,Heuristic1) :-
                                                       retractall(heuristic(_,_)),
 
                                                       %% - Set parameters for the game
-                                                      (NbOfPlayers >= 1 -> write('Le joueur 0 est humain.'), nl, assert(isHuman(0)) ; write('Le joueur 0 est une IA avec l\'heuristique '),write(Heuristic0),write('.'),nl),
-                                                      (NbOfPlayers =:= 2 -> write('Le joueur 1 est humain.'), nl, assert(isHuman(1)) ; write('Le joueur 1 est une IA avec l\'heuristique '),write(Heuristic1),write('.'),nl),
-                                                      nl,                               
+                                                      (NbOfPlayers >= 1 -> assert(isHuman(0)) ; true),
+                                                      (NbOfPlayers =:= 2 -> assert(isHuman(1)) ; true),
                                                       assert(maxL(GameHeight)),
                                                       assert(maxC(GameHeight)),
                                                       makeMatrix(GameHeight,Mat),
                                                       assert(heuristic(0,Heuristic0)),
                                                       assert(heuristic(1,Heuristic1)),
                                                       assert(depth(3)),
+                                                      assert(no_output(0)),
                                                     
                                                       putInitialsDisks(GameHeight, Mat),
-                                                      assert(board(Mat)).
+                                                      assert(board(Mat)),
+                                                      
+                                                      displayPlayerInfo().
 
 %% -- Set initial game board with the regular 4 disks --
 putInitialsDisks(GameHeight, Mat):-
@@ -72,10 +75,18 @@ putInitialsDisks(GameHeight, Mat):-
 
 %% --- PLAY ---
 
+displayPlayerInfo() :- no_output(1), !.
+
+displayPlayerInfo() :-
+    (isHuman(0) -> write('Le joueur 0 est humain.'), nl, assert(isHuman(0)) ; heuristic(0,Heuristic0), write('Le joueur 0 est une IA avec l\'heuristique '),write(Heuristic0),write('.'),nl),
+    (isHuman(1) -> write('Le joueur 1 est humain.'), nl, assert(isHuman(1)) ; heuristic(1,Heuristic1), write('Le joueur 1 est une IA avec l\'heuristique '),write(Heuristic1),write('.'),nl).
+
 %% -- Play the game : stop when a human must play --
 play() :- board(Board), play(Board,0,_).
 
 play(Player) :- board(Board), play(Board,Player,_).
+
+play(Player,Result) :- board(Board), play(Board,Player,Result).
 
 play(Board,Player,Result) :- canPlay(Board,Player),
                              displayGame(Board,Player),
@@ -84,15 +95,17 @@ play(Board,Player,Result) :- canPlay(Board,Player),
                              nextPlayer(NewBoard,Player,NextPlayer),
                              !,play(NewBoard,NextPlayer,Result).
 
-play(Board,Player,Result) :- canPlay(Board,Player),writeln("Bug durant le déroulement d'un tour"),!,fail.
+play(Board,Player,_) :- canPlay(Board,Player),writeln("Bug durant le déroulement d'un tour"),!,fail.
 play(Board,_,Result) :- displayFinalGame(Board),winner(Board,Result),!,announce(Result),!.
 
 
 %% -- Display game board
+displayGame(_,_) :- no_output(1), !.
 displayGame(L,Player) :-  maxL(GameHeight),write('*----------- Tour de '),write(Player),writeln(' ----------*'),nl,displayIndex(1,GameHeight),nl,!,displayBoard(L,Player,1).
 displayBoard([X|L],Player,IndexL) :- write(IndexL),write(' | '),displayLine(X),nl,NewIndexL is IndexL + 1,displayBoard(L,Player,NewIndexL).
 displayBoard([],_,_) :- writeln('*-------------------------------*'),nl,!.
 
+displayFinalGame(_) :- no_output(1), !.
 displayFinalGame(L) :- maxL(GameHeight),writeln('*--------- Plateau final --------*'),nl,displayIndex(1,GameHeight),nl,!,displayBoard(L,-1,1).
 
 displayLine([]).
@@ -135,7 +148,7 @@ applyMove((X,Y),Player,Board,NewBoard) :- replace(Board,ModifBoard,1,X,Y,Player)
 
 %% -- Next player -- 
 canPlay(Board,Player) :- move(Board,Player,_),!.
-nextPlayer(Board,Actual,Next) :- Next is 1-Actual.
+nextPlayer(_,Actual,Next) :- Next is 1-Actual.
 
 
 %% -- Get winner of the game --
@@ -153,4 +166,5 @@ judge(X,Y,1) :- X < Y.
 judge(_,_,2).
 
 %% -- Announce results --
+announce(_) :- no_output(1), !.
 announce(Result):- write("Et le gagnant est ... le joueur "),write(Result),write(" !"),nl.
