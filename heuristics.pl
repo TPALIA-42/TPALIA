@@ -31,9 +31,12 @@ minimax(D,Player,Board,OriginalBoard,MaxMin,Move,Value) :- D > 0,
                                 MinMax is -1*MaxMin,
                                 setof(M,move(Board,NewPlayer,M),Moves),
                                 !,
-                                minimaxChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-1000),(Move,Value)).
-minimax(D,_,_,_,MaxMin,nil,Value) :- MaxMin =:= 1,Value is 1000*D,!.
-minimax(D,_,_,_,MaxMin,nil,Value) :- MaxMin =:= -1,Value is -1000*D,!.
+                                minimaxChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-10000),(Move,Value)).
+minimax(D,Player,Board,_,MaxMin,nil,Value) :-
+    countTotalDisk(Board,Player,N),
+    Opponent is 1-Player,
+    countTotalDisk(Board,Opponent,NO),
+    (N > NO -> Value is MaxMin*1000 ; Value is -MaxMin*1000),!.
 
 
 %% ---AlphaBeta heuristic ---
@@ -55,24 +58,25 @@ alphaBeta(D,Player,Board,OriginalBoard,Alpha,Beta,Move,Value) :- D > 0,
                                                     alphaBetaChoose(Moves,NewPlayer,Board,OriginalBoard,D1,Alpha1,Beta1,nil,(Move,Value1)),
                                                     Value is -1*Value1.
 
-alphaBeta(D,Player,OriginalPlayer,_,_,_,Beta,_,Value) :- Player =:= OriginalPlayer,Value is Beta-0.5,!.
-alphaBeta(D,Player,OriginalPlayer,_,_,_,Beta,_,Value) :- Player =:= 1-OriginalPlayer,Value is Beta+1,!.
+alphaBeta(_,Player,Board,_,Alpha,Beta,_,Value) :-
+    countTotalDisk(Board,Player,N),
+    Opponent is 1-Player,
+    countTotalDisk(Board,Opponent,NO),
+    (N > NO -> Value is Beta ; Value is Alpha),!.
                                                     
 cutoff(Move,Value,_,_,_,_,_,Beta,_,_,(Move,Value)) :-
     Value >= Beta,!.
 
-cutoff(Move,Value,Player,Board,OriginalBoard,D,Alpha,Beta,Moves,Record,Best) :-
+cutoff(Move,Value,Player,Board,OriginalBoard,D,Alpha,Beta,Moves,_,Best) :-
     Alpha < Value,Value < Beta,!,
     alphaBetaChoose(Moves,Player,Board,OriginalBoard,D,Value,Beta,Move,Best).
     
-cutoff(Move,Value,Player,Board,OriginalBoard,D,Alpha,Beta,Moves,Record,Best) :-
+cutoff(_,Value,Player,Board,OriginalBoard,D,Alpha,Beta,Moves,Record,Best) :-
     Value =< Alpha,!,
     alphaBetaChoose(Moves,Player,Board,OriginalBoard,D,Alpha,Beta,Record,Best).
 
 
 update(Move,Value,_,(Move,Value),_,0) :- !.
-update(_,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =:= Value1.
-
 update(_,Value,(Move1,Value1),(Move1,Value1),1,_) :- Value =< Value1.
 update(Move,Value,(_,Value1),(Move,Value),1,_) :- Value > Value1.
 update(Move,Value,(_,Value1),(Move,Value),-1,_) :- Value < Value1.

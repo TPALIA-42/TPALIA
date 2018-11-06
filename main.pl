@@ -84,6 +84,7 @@ play(Board,Player,Result) :- canPlay(Board,Player),
                              nextPlayer(NewBoard,Player,NextPlayer),
                              !,play(NewBoard,NextPlayer,Result).
 
+play(Board,Player,Result) :- canPlay(Board,Player),writeln("Bug durant le déroulement d'un tour"),!,fail.
 play(Board,_,Result) :- displayFinalGame(Board),winner(Board,Result),!,announce(Result),!.
 
 
@@ -129,13 +130,15 @@ chooseMoveAI(Board,Player,Move,3) :- allMoves(Board,Player,Moves),
                                      depth(Depth),
                                      Counter is 0,
                                      MaxMin is 1,
-                                     minimaxChoose(Moves,Player,Board,Board,Counter,Depth,MaxMin,(nil,-1000),(Move,_)).
+                                     minimaxChoose(Moves,Player,Board,Board,Counter,Depth,MaxMin,(nil,-10000),(Move,_)).
 chooseMoveAI(Board,Player,Move,4) :- allMoves(Board,Player,Moves),
                                      depth(Depth),
                                      Counter is 0,
                                      Alpha is -10000,
                                      Beta is 10000,
-                                     alphaBetaChoose(Moves,Player,Board,Board,Depth,Alpha,Beta,nil,(Move,_)).
+                                     nth1(1,Moves,FirstMove),
+                                     alphaBetaChoose(Moves,Player,Board,Board,Depth,Alpha,Beta,FirstMove,(Move,_)).
+
 %% -- Apply move --
 applyMove((X,Y),Player,Board,NewBoard) :- replace(Board,ModifBoard,1,X,Y,Player),
                                           transformBoard((X,Y),Player,ModifBoard,NewBoard).
