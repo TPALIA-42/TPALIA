@@ -1,3 +1,4 @@
+%% --- Create matrix ---
 makeMatrix(N, Mat) :- makeMatrix(N,N,Mat).
 makeMatrix(N, M, Mat) :- length(Mat,N),
                          makeLine(Mat,M).

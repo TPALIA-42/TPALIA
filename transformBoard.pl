@@ -38,23 +38,26 @@ replaceDisk([_|L1],[Player|L2],Pos,IndexC,Player) :-
 replaceDisk([],[],_,_,_).
 
 %% -- Add played disk on the board --
-transform((IndexL,IndexC),(DirectionL,DirectionC),_,_,Board,Board) :- NewIndexL is (IndexL+DirectionL),
-                                    NewIndexC is (IndexC+DirectionC),
-                                    (not(insideBoard(NewIndexL,NewIndexC));
-                                    diskAt(Board,NewIndexL,NewIndexC,Disk),
+transform((IndexL,IndexC),(DirectionL,DirectionC),_,_,Board,Board) :- 
+    NewIndexL is (IndexL+DirectionL),
+    NewIndexC is (IndexC+DirectionC),
+    (not(insideBoard(NewIndexL,NewIndexC));
+    diskAt(Board,NewIndexL,NewIndexC,Disk),
                                     var(Disk)),!.
-transform((IndexL,IndexC),(DirectionL,DirectionC),Player,L,Board,NewBoard) :- NewIndexL is (IndexL+DirectionL),
-                                    NewIndexC is (IndexC+DirectionC),
-                                    insideBoard(NewIndexL,NewIndexC),
-                                    diskAt(Board,NewIndexL,NewIndexC,Disk),
-                                    nonvar(Disk),
-                                    Disk=:=Player,
-                                    changeList(Board,NewBoard,L,Player),
-                                    !.
-transform((IndexL,IndexC),(DirectionL,DirectionC),Player,L,Board,NewBoard) :- NewIndexL is (IndexL+DirectionL),
-                                    NewIndexC is (IndexC+DirectionC),
-                                    insideBoard(NewIndexL,NewIndexC),
-                                    diskAt(Board,NewIndexL,NewIndexC,Disk),
-                                    nonvar(Disk),
-                                    Disk=:=1-Player,
-                                    transform((NewIndexL,NewIndexC),(DirectionL,DirectionC),Player,[(NewIndexL,NewIndexC)|L],Board,NewBoard).
+transform((IndexL,IndexC),(DirectionL,DirectionC),Player,L,Board,NewBoard) :- 
+    NewIndexL is (IndexL+DirectionL),
+    NewIndexC is (IndexC+DirectionC),
+    insideBoard(NewIndexL,NewIndexC),
+    diskAt(Board,NewIndexL,NewIndexC,Disk),
+    nonvar(Disk),
+    Disk=:=Player,
+    changeList(Board,NewBoard,L,Player),
+    !.
+transform((IndexL,IndexC),(DirectionL,DirectionC),Player,L,Board,NewBoard) :- 
+    NewIndexL is (IndexL+DirectionL),
+    NewIndexC is (IndexC+DirectionC),
+    insideBoard(NewIndexL,NewIndexC),
+    diskAt(Board,NewIndexL,NewIndexC,Disk),
+    nonvar(Disk),
+    Disk=:=1-Player,
+    transform((NewIndexL,NewIndexC),(DirectionL,DirectionC),Player,[(NewIndexL,NewIndexC)|L],Board,NewBoard).

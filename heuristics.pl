@@ -12,6 +12,7 @@ randomChoose(List, Elt) :-
     nth0(Index, List, Elt).
 
 %% --- Simple AI : Move that harvest the greatest number of disks ---
+%% > simpleChoose/4 : +Moves, +Player, +Board, -Move
 simpleChoose(Moves,Player,Board,Move) :- simpleChoose(Moves,Player,Board,nil,-10000,Move).
 
 simpleChoose([],_,_,Best,_,Best).
@@ -21,11 +22,13 @@ simpleChoose([Move|Moves],Player,Board,Actual,Value,Best) :-
     (N > Value -> simpleChoose(Moves,Player,Board,Move,N,Best) ; simpleChoose(Moves,Player,Board,Actual,Value,Best)).
 
 %% --- MinMax heuristic ---
+%% > minimaxChoose/5 : +Moves,+Player,+Board,+Depth,-Move
 minimaxChoose(Moves,Player,Board,Depth,Move) :-
     Counter is 0,
     MaxMin is 1,
     minimaxChoose(Moves,Player,Board,Board,Counter,Depth,MaxMin,(nil,-10000),(Move,_)).
 
+%% > minimaxChoose/7 : +Moves,+Player,+Board,+OriginalBoard,+Counter,+Depth,+MaxMin,+Record,-Best
 minimaxChoose([Move|Moves],Player,Board,OriginalBoard,Counter,Depth,MaxMin,Record,Best) :-
     applyMove(Move,Player,Board,NewBoard),
     minimax(Depth,Player,NewBoard,OriginalBoard,MaxMin,_,Value),
@@ -61,12 +64,14 @@ update(Move,Value,(_,Value1),(Move,Value),-1,_) :- Value < Value1.
 update(_,Value,(Move1,Value1),(Move1,Value1),-1,_) :- Value >= Value1.
 
 %% ---AlphaBeta heuristic ---
+%% > alphaBetaChoose/5 : +Moves,+Player,+Board,+Depth,-Move
 alphaBetaChoose(Moves,Player,Board,Depth,Move) :-
     Alpha is -10000,
     Beta is 10000,
     nth1(1,Moves,FirstMove),
     alphaBetaChoose(Moves,Player,Board,Board,Depth,Alpha,Beta,FirstMove,(Move,_)).
 
+%% > alphaBetaChoose/7 : +Moves,+Player,+Board,+OriginalBoard,+Depth,+Alpha,+Beta,+Record,-Best
 alphaBetaChoose([Move|Moves],Player,Board,OriginalBoard,Depth,Alpha,Beta,Record,Best) :-
     applyMove(Move,Player,Board,NewBoard),
     alphaBeta(Depth,Player,NewBoard,OriginalBoard,Alpha,Beta,_,Value),
