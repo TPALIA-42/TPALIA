@@ -88,9 +88,4 @@ testNextPlayer :-
         nl,write("Test nextPlayer"),nl,
 
         write("Le joueur jouant après J0 est J1 : "),(nextPlayer(0,1) -> write("Succ") ; write("Fail")), nl,
-        write("Le joueur jouant après J1 est J0 : "),(nextPlayer(1,0) -> write("Succ") ; write("Fail")), nl,
-
-        applyMove((5,3),0,Board,Board1),
-        applyMove((3,4),1,Board1,Board2),
-        applyMove((4,6),0,Board2,Board3),
-        applyMove((2,4),0,Board3,Board4),
+        write("Le joueur jouant après J1 est J0 : "),(nextPlayer(1,0) -> write("Succ") ; write("Fail")), nl.

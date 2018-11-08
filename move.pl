@@ -33,3 +33,5 @@ move(Board,(IndexL,IndexC),Player,(DirectionL,DirectionC),Counter,Move) :- NewIn
 %% > allMoves/3 : +Board, +Player, -Moves
 allMoves(Board,Player,Moves) :- setof(M,move(Board,Player,M),Moves).
 allMoves(_,_,[]).
+
+randomMoves(Board,Player,RandomMoves) :- setof(M,move(Board,Player,M),Moves),random_permutation(Moves,RandomMoves).

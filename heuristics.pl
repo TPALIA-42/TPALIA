@@ -12,8 +12,7 @@ randomChoose(List, Elt) :-
     nth0(Index, List, Elt).
 
 %% --- Simple AI : Move that harvest the greatest number of disks ---
-%% > simpleChoose/4 : +Moves, +Player, +Board, -Move
-simpleChoose(Moves,Player,Board,Move) :- simpleChoose(Moves,Player,Board,nil,-10000,Move).
+simpleChoose(Moves,Player,Board,Move) :- random_permutation(Moves,RandomMoves),simpleChoose(RandomMoves,Player,Board,nil,-10000,Move).
 
 simpleChoose([],_,_,Best,_,Best).
 simpleChoose([Move|Moves],Player,Board,Actual,Value,Best) :-
@@ -47,7 +46,7 @@ minimax(D,Player,Board,OriginalBoard,MaxMin,Move,Value) :-
     NewPlayer is 1-Player,
     D1 is D-1,
     MinMax is -1*MaxMin,
-    setof(M,move(Board,NewPlayer,M),Moves),
+    randomMoves(Board,NewPlayer,Moves),
     !,
     minimaxChoose(Moves,NewPlayer,Board,OriginalBoard,0,D1,MinMax,(nil,-10000),(Move,Value)).
 
@@ -68,8 +67,9 @@ update(_,Value,(Move1,Value1),(Move1,Value1),-1,_) :- Value >= Value1.
 alphaBetaChoose(Moves,Player,Board,Depth,Move) :-
     Alpha is -10000,
     Beta is 10000,
-    nth1(1,Moves,FirstMove),
-    alphaBetaChoose(Moves,Player,Board,Board,Depth,Alpha,Beta,FirstMove,(Move,_)).
+    random_permutation(Moves,RandomMoves),
+    nth1(1,RandomMoves,FirstMove),
+    alphaBetaChoose(RandomMoves,Player,Board,Board,Depth,Alpha,Beta,FirstMove,(Move,_)).
 
 %% > alphaBetaChoose/7 : +Moves,+Player,+Board,+OriginalBoard,+Depth,+Alpha,+Beta,+Record,-Best
 alphaBetaChoose([Move|Moves],Player,Board,OriginalBoard,Depth,Alpha,Beta,Record,Best) :-
@@ -87,7 +87,7 @@ alphaBeta(D,Player,Board,OriginalBoard,Alpha,Beta,Move,Value) :-
     D1 is D-1,
     Alpha1 is -1*Beta,
     Beta1 is -1*Alpha,
-    setof(M,move(Board,NewPlayer,M),Moves),!,
+    randomMoves(Board,NewPlayer,Moves),!,
     alphaBetaChoose(Moves,NewPlayer,Board,OriginalBoard,D1,Alpha1,Beta1,nil,(Move,Value1)),
     Value is -1*Value1.
 
@@ -99,11 +99,11 @@ alphaBeta(_,Player,Board,_,Alpha,Beta,_,Value) :-
 
 cutoff(Move,Value,_,_,_,_,_,Beta,_,_,(Move,Value)) :-
     Value >= Beta,!.
-
+    
 cutoff(Move,Value,Player,Board,OriginalBoard,D,Alpha,Beta,Moves,_,Best) :-
     Alpha < Value,Value < Beta,!,
     alphaBetaChoose(Moves,Player,Board,OriginalBoard,D,Value,Beta,Move,Best).
-    
+
 cutoff(_,Value,Player,Board,OriginalBoard,D,Alpha,Beta,Moves,Record,Best) :-
     Value =< Alpha,!,
     alphaBetaChoose(Moves,Player,Board,OriginalBoard,D,Alpha,Beta,Record,Best).

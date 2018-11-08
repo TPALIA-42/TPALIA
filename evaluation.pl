@@ -3,7 +3,7 @@
 run :-
     [main],
     assert(no_output(1)),
-    runTournament(4).
+    runTournament(5).
 
 %% --- Launch the tournament
 runTournament(MaxH) :- runTournament(0,0,MaxH).

@@ -58,6 +58,7 @@ chooseMoveAI(Board,Player,Move,1) :- allMoves(Board,Player,Moves),randomChoose(M
 chooseMoveAI(Board,Player,Move,2) :- allMoves(Board,Player,Moves),simpleChoose(Moves,Player,Board,Move).
 chooseMoveAI(Board,Player,Move,3) :- allMoves(Board,Player,Moves),depth(Depth),minimaxChoose(Moves,Player,Board,Depth,Move).
 chooseMoveAI(Board,Player,Move,4) :- allMoves(Board,Player,Moves),depth(Depth),alphaBetaChoose(Moves,Player,Board,Depth,Move).
+chooseMoveAI(Board,Player,Move,5) :- allMoves(Board,Player,Moves),depth2(Depth),alphaBetaChoose(Moves,Player,Board,Depth,Move).
 
 %% -- Apply move --
 %% > applyMove/4 : +Move, +Player, +Board, -NewBoard
